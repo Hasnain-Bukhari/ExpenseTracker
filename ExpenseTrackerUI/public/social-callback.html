@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Social Auth Callback</title>
+</head>
+<body>
+<script>
+(function() {
+  try {
+    // determine provider from query param
+    const params = new URLSearchParams(location.search)
+    const provider = params.get('provider') || 'unknown'
+
+    // parse access_token from hash fragment (implicit flow)
+    const hash = location.hash.substring(1)
+    const hashParams = new URLSearchParams(hash)
+    const accessToken = hashParams.get('access_token') || null
+
+    // also check query param access_token (just in case)
+    const queryToken = params.get('access_token') || null
+    // also check for authorization code (auth code flow)
+    const authCode = params.get('code') || null
+
+    // choose token: prefer fragment access_token, then query access_token, then code
+    const token = accessToken || queryToken || authCode || null
+
+    // send message to opener
+    if (window.opener) {
+      try {
+        window.opener.postMessage({ provider, token }, window.location.origin)
+      } catch (err) {
+        // fallback: try to post to wildcard origin
+        try { window.opener.postMessage({ provider, token }, '*') } catch (err2) {}
+      }
+      // close popup after short delay
+      setTimeout(() => window.close(), 250)
+    }
+  } catch (e) {
+    try { window.opener.postMessage({ provider: null, token: null }, window.location.origin) } catch (err) {}
+    setTimeout(() => window.close(), 250)
+  }
+})()
+</script>
+</body>
+</html>

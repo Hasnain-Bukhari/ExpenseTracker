@@ -102,14 +102,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { mockForgotPassword } from '@/data/mockAuth'
+import { useAuth } from '@/composables/useAuth'
 import AuthCard from '@/components/auth/AuthCard.vue'
+
+const { forgotPassword } = useAuth()
 
 // Form state
 const formRef = ref()
-const form = reactive({
-  email: ''
-})
+const form = reactive({ email: '' })
 
 // Component state
 const isLoading = ref(false)
@@ -128,30 +128,26 @@ const validateEmail = () => {
 }
 
 const isFormValid = computed(() => {
-  return form.email && 
-         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
-         !emailError.value
+  return form.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) && !emailError.value
 })
 
 // Form submission
 const handleSubmit = async () => {
   validateEmail()
-  
   if (!isFormValid.value) return
-  
+
   isLoading.value = true
   error.value = ''
-  
+
   try {
-    const result = await mockForgotPassword({ email: form.email })
-    
-    if (result.ok) {
+    const res = await forgotPassword({ email: form.email })
+    if (res && (res.ok || res.success)) {
       emailSent.value = true
     } else {
-      error.value = result.error || 'Failed to send reset email'
+      error.value = (res && (res.error || res.message)) || 'Unable to send reset email. Try again later.'
     }
   } catch (err) {
-    error.value = 'Network error occurred'
+    error.value = 'Unable to send reset email. Try again later.'
   } finally {
     isLoading.value = false
   }

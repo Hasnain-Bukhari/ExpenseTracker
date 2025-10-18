@@ -196,6 +196,27 @@ const showSocialModal = ref(false)
 const selectedProvider = ref<SocialProvider | null>(null)
 const socialLoading = ref<string | null>(null)
 
+// Utility functions for PKCE
+const base64UrlEncode = (buffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(buffer)
+  let str = ''
+  for (let i = 0; i < bytes.byteLength; i++) {
+    str += String.fromCharCode(bytes[i])
+  }
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+const generatePKCE = async () => {
+  // create random verifier
+  const array = new Uint8Array(64)
+  crypto.getRandomValues(array)
+  const verifier = Array.from(array).map((b) => ('0' + b.toString(16)).slice(-2)).join('')
+  const enc = new TextEncoder().encode(verifier)
+  const digest = await crypto.subtle.digest('SHA-256', enc)
+  const challenge = base64UrlEncode(digest)
+  return { verifier, challenge }
+}
+
 // Form validation
 const validateEmail = () => {
   emailError.value = ''
@@ -251,8 +272,75 @@ const confirmSocialLogin = async () => {
   if (!selectedProvider.value) return
   
   socialLoading.value = selectedProvider.value.id
-  
-  const result = await authStore.socialLogin(selectedProvider.value.id)
+
+  const providerId = selectedProvider.value.id
+  const redirectUri = window.location.origin + '/social-callback.html?provider=' + providerId
+
+  // Prefer direct Google or Facebook OAuth from frontend when client id/app id is configured
+  let popupUrl: string
+  let usedPKCE = false
+  let pkceVerifier: string | null = null
+
+  if (providerId === 'google' && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    // Use Authorization Code + PKCE
+    usedPKCE = true
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    const { verifier, challenge } = await generatePKCE()
+    pkceVerifier = verifier
+    // store verifier temporarily so it can be retrieved after popup (in case callback handled elsewhere)
+    try { sessionStorage.setItem(`pkce_verifier_${providerId}`, verifier) } catch (e) {}
+    const scope = encodeURIComponent('openid profile email')
+    popupUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&code_challenge=${challenge}&code_challenge_method=S256&prompt=select_account&include_granted_scopes=true`
+  } else if (providerId === 'facebook' && import.meta.env.VITE_FACEBOOK_APP_ID) {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID
+    const scope = encodeURIComponent('email,public_profile')
+    popupUrl = `https://www.facebook.com/v16.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}`
+  } else {
+    popupUrl = `${import.meta.env.VITE_API_BASE || ''}/auth/oauth/${providerId}?redirect=${encodeURIComponent(redirectUri)}`
+  }
+
+  let token: string | null = null
+
+  try {
+    const popup = window.open(popupUrl, 'social_auth', 'width=600,height=700')
+    if (!popup) {
+      // popup blocked; fallback to mock token
+      token = `mock-${providerId}:${selectedProvider.value.mockUser.email}`
+    } else {
+      // wait for message from popup
+      token = await new Promise((resolve) => {
+        const handler = (e: MessageEvent) => {
+          // allow messages from same origin or wildcard from callback
+          if (e.origin !== window.location.origin && e.origin !== 'null') return
+          if (!e.data) return
+          window.removeEventListener('message', handler)
+          resolve(e.data.token ?? null)
+        }
+        window.addEventListener('MessageEvent' in window ? 'message' : 'message', handler)
+        // timeout after 20s
+        setTimeout(() => {
+          window.removeEventListener('message', handler)
+          resolve(null)
+        }, 20000)
+      })
+    }
+  } catch (e) {
+    token = `mock-${providerId}:${selectedProvider.value.mockUser.email}`
+  }
+
+  // If we used PKCE and received a code, retrieve verifier from sessionStorage
+  let codeVerifierToSend: string | undefined = undefined
+  if (usedPKCE) {
+    try {
+      codeVerifierToSend = sessionStorage.getItem(`pkce_verifier_${providerId}`) || undefined
+    } catch (e) {
+      codeVerifierToSend = undefined
+    }
+    try { sessionStorage.removeItem(`pkce_verifier_${providerId}`) } catch (e) {}
+  }
+
+  // call store social login endpoint. If token is an auth code, include codeVerifier as third arg.
+  const result = await authStore.socialLogin(providerId as 'google' | 'facebook', token ?? undefined, codeVerifierToSend)
   
   socialLoading.value = null
   showSocialModal.value = false

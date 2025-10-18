@@ -333,14 +333,61 @@ const confirmSocialLogin = async () => {
   if (!selectedProvider.value) return
   
   socialLoading.value = selectedProvider.value.id
-  
-  const result = await authStore.socialLogin(selectedProvider.value.id)
-  
+
+  const providerId = selectedProvider.value.id
+  const redirectUri = window.location.origin + '/social-callback.html?provider=' + providerId
+
+  // Prefer direct Google or Facebook OAuth from frontend when client id/app id is configured
+  let popupUrl: string
+  if (providerId === 'google' && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    const scope = encodeURIComponent('openid profile email')
+    popupUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&prompt=select_account&include_granted_scopes=true`
+  } else if (providerId === 'facebook' && import.meta.env.VITE_FACEBOOK_APP_ID) {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID
+    const scope = encodeURIComponent('email,public_profile')
+    popupUrl = `https://www.facebook.com/v16.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}`
+  } else {
+    popupUrl = `${import.meta.env.VITE_API_BASE || ''}/auth/oauth/${providerId}?redirect=${encodeURIComponent(redirectUri)}`
+  }
+
+  let token: string | null = null
+
+  try {
+    const popup = window.open(popupUrl, 'social_auth', 'width=600,height=700')
+    if (!popup) {
+      // popup blocked; fallback to mock token
+      token = `mock-${providerId}:${selectedProvider.value.mockUser.email}`
+    } else {
+      // wait for message from popup
+      token = await new Promise((resolve) => {
+        const handler = (e: MessageEvent) => {
+          if (e.origin !== window.location.origin) return
+          if (!e.data) return
+          window.removeEventListener('message', handler)
+          resolve(e.data.token ?? null)
+        }
+        window.addEventListener('message', handler)
+        // timeout after 20s
+        setTimeout(() => {
+          window.removeEventListener('message', handler)
+          resolve(null)
+        }, 20000)
+      })
+    }
+  } catch (e) {
+    token = `mock-${providerId}:${selectedProvider.value.mockUser.email}`
+  }
+
+  // call store social login endpoint with token (or undefined to let backend handle full flow)
+  const result = await authStore.socialLogin(providerId as 'google' | 'facebook', token ?? undefined)
+
   socialLoading.value = null
   showSocialModal.value = false
-  
+
   if (result.success) {
-    router.push('/')
+    const redirectTo = router.currentRoute.value.query.redirect as string || '/'
+    router.push(redirectTo)
   }
 }
 

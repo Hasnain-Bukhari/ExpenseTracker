@@ -56,3 +56,14 @@ export interface PasswordValidation {
   score: number
   feedback: string[]
 }
+
+// API-facing DTOs (integration prompt)
+export interface RegisterRequestDto { name: string; email: string; phone?: string | null; password?: string | null; acceptTerms: boolean }
+export interface LoginRequestDto { email: string; password: string; remember: boolean }
+export interface SocialLoginRequestDto { provider: string; token: string; remember: boolean }
+export interface RefreshRequestDto { refreshToken: string }
+export interface ForgotPasswordRequestDto { email: string }
+export interface ResetPasswordRequestDto { token: string; newPassword: string }
+
+export interface AuthUserDto { id: string; name: string; email: string }
+export interface AuthApiResponse { ok: boolean; user?: AuthUserDto; accessToken?: string; refreshToken?: string; expiresIn?: number }

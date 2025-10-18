@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { User, LoginRequest, RegisterRequest } from '@/types/auth'
-import { mockLogin, mockRegister, mockSocialLogin } from '@/data/mockAuth'
+import type { User, LoginRequest, RegisterRequest, AuthApiResponse } from '@/types/auth'
+import api, { setTokens, getRefreshToken, clearTokens } from '@/lib/api'
 
-const AUTH_TOKEN_KEY = 'auth_token'
 const AUTH_USER_KEY = 'auth_user'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -31,26 +30,27 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      const response = await mockLogin(credentials)
-      
-      if (response.ok && response.user && response.token) {
-        user.value = response.user
-        token.value = response.token
-        
-        // Persist to localStorage if remember me is checked
-        if (credentials.remember) {
-          localStorage.setItem(AUTH_TOKEN_KEY, response.token)
+      const r = await api.post('/auth/login', credentials)
+      const response = r.data as AuthApiResponse
+
+      if (response && response.ok && response.user) {
+        user.value = response.user as User
+        // normalize token field names
+        const access = (response as any).accessToken ?? (response as any).token ?? null
+        const refresh = (response as any).refreshToken ?? null
+        setTokens(access, refresh, !!credentials.remember)
+        token.value = access ?? null
+
+        // Persist user for UI persistence
+        if (credentials.remember && response.user) {
           localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
         }
-        
-        // TODO: Set axios default authorization header
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`
-        
+
         return { success: true }
-      } else {
-        error.value = response.error || 'Login failed'
-        return { success: false, error: error.value }
       }
+
+      error.value = (response && (response as any).error) || 'Login failed'
+      return { success: false, error: error.value }
     } catch (err) {
       error.value = 'Network error occurred'
       return { success: false, error: error.value }
@@ -64,24 +64,24 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      const response = await mockRegister(data)
-      
-      if (response.ok && response.user && response.token) {
-        user.value = response.user
-        token.value = response.token
-        
-        // Auto-save token after successful registration
-        localStorage.setItem(AUTH_TOKEN_KEY, response.token)
+      const r = await api.post('/auth/register', data)
+      const response = r.data as AuthApiResponse
+
+      if (response && response.ok && response.user) {
+        user.value = response.user as User
+        const access = (response as any).accessToken ?? (response as any).token ?? null
+        const refresh = (response as any).refreshToken ?? null
+        setTokens(access, refresh, true)
+        token.value = access ?? null
+
+        // persist user
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
-        
-        // TODO: Set axios default authorization header
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`
-        
+
         return { success: true }
-      } else {
-        error.value = response.error || 'Registration failed'
-        return { success: false, error: error.value }
       }
+
+      error.value = (response && (response as any).error) || 'Registration failed'
+      return { success: false, error: error.value }
     } catch (err) {
       error.value = 'Network error occurred'
       return { success: false, error: error.value }
@@ -90,29 +90,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const socialLogin = async (provider: 'google' | 'facebook') => {
+  const socialLogin = async (provider: 'google' | 'facebook', tokenOrMock?: string, codeVerifier?: string) => {
+    // tokenOrMock allows passing local mock tokens from UI
     isLoading.value = true
     error.value = null
-    
+
     try {
-      const response = await mockSocialLogin(provider)
-      
-      if (response.ok && response.user && response.token) {
-        user.value = response.user
-        token.value = response.token
-        
-        // Always persist social login
-        localStorage.setItem(AUTH_TOKEN_KEY, response.token)
+      const payload: any = { provider, remember: true }
+      if (tokenOrMock) payload.token = tokenOrMock
+      if (codeVerifier) payload.codeVerifier = codeVerifier
+
+      const r = await api.post('/auth/social', payload)
+      const response = r.data as AuthApiResponse
+
+      if (response && response.ok && response.user) {
+        user.value = response.user as User
+        const access = (response as any).accessToken ?? (response as any).token ?? null
+        const refresh = (response as any).refreshToken ?? null
+        setTokens(access, refresh, true)
+        token.value = access ?? null
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
-        
-        // TODO: Set axios default authorization header
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`
-        
         return { success: true }
-      } else {
-        error.value = response.error || 'Social login failed'
-        return { success: false, error: error.value }
       }
+
+      error.value = (response && (response as any).error) || 'Social login failed'
+      return { success: false, error: error.value }
     } catch (err) {
       error.value = 'Network error occurred'
       return { success: false, error: error.value }
@@ -122,34 +124,28 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = () => {
+    // attempt server logout if refresh token present
+    const refresh = getRefreshToken()
+    if (refresh) {
+      api.post('/auth/logout', { refreshToken: refresh }).catch(() => {})
+    }
+
     user.value = null
     token.value = null
     error.value = null
-    
-    // Clear localStorage
-    localStorage.removeItem(AUTH_TOKEN_KEY)
+
+    // Clear local persistence
     localStorage.removeItem(AUTH_USER_KEY)
-    
-    // TODO: Clear axios default authorization header
-    // delete axios.defaults.headers.common['Authorization']
+    clearTokens()
   }
 
   const loadFromStorage = () => {
-    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY)
     const storedUser = localStorage.getItem(AUTH_USER_KEY)
-    
-    if (storedToken && storedUser) {
+    // If we have a persisted user, restore it. Tokens are managed by lib/api (refreshToken persisted when remember used)
+    if (storedUser) {
       try {
-        token.value = storedToken
         user.value = JSON.parse(storedUser)
-        
-        // TODO: Set axios default authorization header
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
-        
-        // TODO: Validate token with backend
-        // validateToken(storedToken)
       } catch (err) {
-        // Clear invalid data
         logout()
       }
     }

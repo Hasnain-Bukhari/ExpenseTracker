@@ -12,3 +12,10 @@ obj/
 # env / secrets
 .env
 .env.local
+
+
+# dist /build
+dist/
+build/
+ExpenseTrackerUI/dist/
+ExpenseTrackerUI/dist/assets/
