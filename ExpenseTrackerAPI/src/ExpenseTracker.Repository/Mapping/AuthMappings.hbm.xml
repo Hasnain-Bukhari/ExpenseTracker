@@ -14,7 +14,7 @@
     <property name="IsActive" column="is_active" />
     <property name="IsEmailVerified" column="is_email_verified" />
     <property name="Phone" column="phone" />
-    <property name="Provider" column="provider" type="string" />
+    <property name="Provider" column="provider" type="NHibernate.Type.EnumStringType`1[[ExpenseTracker.Dtos.Models.AuthProvider, ExpenseTracker.Dtos]]" />
     <property name="ProviderId" column="provider_id" />
     <property name="LastLoginAt" column="last_login_at" />
     <property name="CreatedAt" column="created_at" />

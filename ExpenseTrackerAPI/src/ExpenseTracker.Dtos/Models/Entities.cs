@@ -11,118 +11,258 @@ namespace ExpenseTracker.Dtos.Models
     // Authentication-related enum
     public enum AuthProvider { Local, Google, Facebook, Mixed }
 
-    // User record extended for authentication needs. PasswordHash is nullable to allow social-only accounts.
-    public record User(
-        Guid Id,
-        string Email,
-        string NormalizedEmail,
-        string? PasswordHash,
-        string? FullName,
-        string DefaultCurrency,
-        string? Locale,
-        string? Timezone,
-        bool IsActive,
-        bool IsEmailVerified,
-        string? Phone,
-        AuthProvider Provider,
-        string? ProviderId,
-        DateTimeOffset? LastLoginAt,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+    // User entity - converted from record to class for NHibernate proxy compatibility
+    public class User
+    {
+        public virtual Guid Id { get; set; }
+        public virtual string Email { get; set; } = null!;
+        public virtual string NormalizedEmail { get; set; } = null!;
+        public virtual string? PasswordHash { get; set; }
+        public virtual string? FullName { get; set; }
+        public virtual string DefaultCurrency { get; set; } = null!;
+        public virtual string? Locale { get; set; }
+        public virtual string? Timezone { get; set; }
+        public virtual bool IsActive { get; set; }
+        public virtual bool IsEmailVerified { get; set; }
+        public virtual string? Phone { get; set; }
+        public virtual AuthProvider Provider { get; set; }
+        public virtual string? ProviderId { get; set; }
+        public virtual DateTime? LastLoginAt { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
 
-    public record Currency(
-        string Code,
-        string? Symbol,
-        string? Name
-    );
+        public User() { }
 
-    public record Account(
-        Guid Id,
-        Guid UserId,
-        string Name,
-        AccountType Type,
-        string Currency,
-        bool IsSavings,
-        decimal OpeningBalance,
-        bool IncludeInNetworth,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, string defaultCurrency, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
+        {
+            Id = id;
+            Email = email;
+            NormalizedEmail = normalizedEmail;
+            PasswordHash = passwordHash;
+            FullName = fullName;
+            DefaultCurrency = defaultCurrency;
+            Locale = locale;
+            Timezone = timezone;
+            IsActive = isActive;
+            IsEmailVerified = isEmailVerified;
+            Phone = phone;
+            Provider = provider;
+            ProviderId = providerId;
+            LastLoginAt = lastLoginAt;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
 
-    public record Category(
-        Guid Id,
-        Guid UserId,
-        string Name,
-        Guid? ParentId,
-        CategoryType Type,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+    public class Currency
+    {
+        public virtual string Code { get; set; } = null!;
+        public virtual string? Symbol { get; set; }
+        public virtual string? Name { get; set; }
 
-    public record Goal(
-        Guid Id,
-        Guid UserId,
-        string Name,
-        decimal TargetAmount,
-        string Currency,
-        Guid? AccountId,
-        DateTime? Deadline,
-        string? Note,
-        bool Archived,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+        public Currency() { }
+        public Currency(string code, string? symbol, string? name)
+        {
+            Code = code;
+            Symbol = symbol;
+            Name = name;
+        }
+    }
 
-    public record Transaction(
-        Guid Id,
-        Guid UserId,
-        Guid AccountId,
-        TransactionType Type,
-        decimal Amount,
-        string Currency,
-        decimal? OriginalAmount,
-        string? OriginalCurrency,
-        DateTime Date,
-        DateTimeOffset? SettledAt,
-        Guid? CategoryId,
-        Guid? GoalId,
-        string? Notes,
-        TransactionStatus Status,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+    public class Account
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual string Name { get; set; } = null!;
+        public virtual AccountType Type { get; set; }
+        public virtual string Currency { get; set; } = null!;
+        public virtual bool IsSavings { get; set; }
+        public virtual decimal OpeningBalance { get; set; }
+        public virtual bool IncludeInNetworth { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset UpdatedAt { get; set; }
 
-    public record Budget(
-        Guid Id,
-        Guid UserId,
-        Guid CategoryId,
-        BudgetPeriod Period,
-        decimal Amount,
-        DateTime StartDate,
-        DateTime? EndDate,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
-    );
+        public Account() { }
+        public Account(Guid id, Guid userId, string name, AccountType type, string currency, bool isSavings, decimal openingBalance, bool includeInNetworth, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        {
+            Id = id;
+            UserId = userId;
+            Name = name;
+            Type = type;
+            Currency = currency;
+            IsSavings = isSavings;
+            OpeningBalance = openingBalance;
+            IncludeInNetworth = includeInNetworth;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
+
+    public class Category
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual string Name { get; set; } = null!;
+        public virtual Guid? ParentId { get; set; }
+        public virtual CategoryType Type { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset UpdatedAt { get; set; }
+
+        public Category() { }
+        public Category(Guid id, Guid userId, string name, Guid? parentId, CategoryType type, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        {
+            Id = id;
+            UserId = userId;
+            Name = name;
+            ParentId = parentId;
+            Type = type;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
+
+    public class Goal
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual string Name { get; set; } = null!;
+        public virtual decimal TargetAmount { get; set; }
+        public virtual string Currency { get; set; } = null!;
+        public virtual Guid? AccountId { get; set; }
+        public virtual DateTime? Deadline { get; set; }
+        public virtual string? Note { get; set; }
+        public virtual bool Archived { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset UpdatedAt { get; set; }
+
+        public Goal() { }
+        public Goal(Guid id, Guid userId, string name, decimal targetAmount, string currency, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        {
+            Id = id;
+            UserId = userId;
+            Name = name;
+            TargetAmount = targetAmount;
+            Currency = currency;
+            AccountId = accountId;
+            Deadline = deadline;
+            Note = note;
+            Archived = archived;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
+
+    public class Transaction
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual Guid AccountId { get; set; }
+        public virtual TransactionType Type { get; set; }
+        public virtual decimal Amount { get; set; }
+        public virtual string Currency { get; set; } = null!;
+        public virtual decimal? OriginalAmount { get; set; }
+        public virtual string? OriginalCurrency { get; set; }
+        public virtual DateTime Date { get; set; }
+        public virtual DateTimeOffset? SettledAt { get; set; }
+        public virtual Guid? CategoryId { get; set; }
+        public virtual Guid? GoalId { get; set; }
+        public virtual string? Notes { get; set; }
+        public virtual TransactionStatus Status { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset UpdatedAt { get; set; }
+
+        public Transaction() { }
+        public Transaction(Guid id, Guid userId, Guid accountId, TransactionType type, decimal amount, string currency, decimal? originalAmount, string? originalCurrency, DateTime date, DateTimeOffset? settledAt, Guid? categoryId, Guid? goalId, string? notes, TransactionStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        {
+            Id = id;
+            UserId = userId;
+            AccountId = accountId;
+            Type = type;
+            Amount = amount;
+            Currency = currency;
+            OriginalAmount = originalAmount;
+            OriginalCurrency = originalCurrency;
+            Date = date;
+            SettledAt = settledAt;
+            CategoryId = categoryId;
+            GoalId = goalId;
+            Notes = notes;
+            Status = status;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
+
+    public class Budget
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual Guid CategoryId { get; set; }
+        public virtual BudgetPeriod Period { get; set; }
+        public virtual decimal Amount { get; set; }
+        public virtual DateTime StartDate { get; set; }
+        public virtual DateTime? EndDate { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset UpdatedAt { get; set; }
+
+        public Budget() { }
+        public Budget(Guid id, Guid userId, Guid categoryId, BudgetPeriod period, decimal amount, DateTime startDate, DateTime? endDate, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        {
+            Id = id;
+            UserId = userId;
+            CategoryId = categoryId;
+            Period = period;
+            Amount = amount;
+            StartDate = startDate;
+            EndDate = endDate;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+        }
+    }
 
     // Refresh token entity for rotation and revocation handling
-    public record RefreshToken(
-        Guid Id,
-        Guid UserId,
-        string TokenHash,
-        string? DeviceInfo,
-        DateTimeOffset ExpiresAt,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset? RevokedAt
-    );
+    public class RefreshToken
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual string TokenHash { get; set; } = null!;
+        public virtual string? DeviceInfo { get; set; }
+        public virtual DateTimeOffset ExpiresAt { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTimeOffset? RevokedAt { get; set; }
 
-    // Password reset token record
-    public record PasswordResetToken(
-        Guid Id,
-        Guid UserId,
-        string TokenHash,
-        DateTimeOffset ExpiresAt,
-        bool Used,
-        DateTimeOffset CreatedAt
-    );
+        public RefreshToken() { }
+        public RefreshToken(Guid id, Guid userId, string tokenHash, string? deviceInfo, DateTimeOffset expiresAt, DateTimeOffset createdAt, DateTimeOffset? revokedAt)
+        {
+            Id = id;
+            UserId = userId;
+            TokenHash = tokenHash;
+            DeviceInfo = deviceInfo;
+            ExpiresAt = expiresAt;
+            CreatedAt = createdAt;
+            RevokedAt = revokedAt;
+        }
+    }
+
+    // Password reset token entity
+    public class PasswordResetToken
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid UserId { get; set; }
+        public virtual string TokenHash { get; set; } = null!;
+        public virtual DateTimeOffset ExpiresAt { get; set; }
+        public virtual bool Used { get; set; }
+        public virtual DateTimeOffset CreatedAt { get; set; }
+
+        public PasswordResetToken() { }
+        public PasswordResetToken(Guid id, Guid userId, string tokenHash, DateTimeOffset expiresAt, bool used, DateTimeOffset createdAt)
+        {
+            Id = id;
+            UserId = userId;
+            TokenHash = tokenHash;
+            ExpiresAt = expiresAt;
+            Used = used;
+            CreatedAt = createdAt;
+        }
+    }
 }

@@ -36,7 +36,7 @@ namespace ExpenseTracker.Repository.Repositories
             var token = await session.GetAsync<PasswordResetToken>(id);
             if (token != null)
             {
-                token = token with { Used = true };
+                token.Used = true;
                 await session.UpdateAsync(token);
             }
             await tx.CommitAsync();

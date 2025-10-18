@@ -14,8 +14,8 @@ services:
 
   api:
     build:
-      context: ./src/ExpenseTracker.API
-      dockerfile: Dockerfile
+      context: ./src
+      dockerfile: ExpenseTracker.API/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - CONNECTION_STRING=Host=postgres;Port=5432;Database=expense_tracker_dev;Username=postgres;Password=postgres
@@ -23,7 +23,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "5000:80"
+      - "5001:80"
     stdin_open: true
     tty: true
 

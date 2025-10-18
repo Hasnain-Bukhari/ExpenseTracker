@@ -17,6 +17,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add controllers
 builder.Services.AddControllers();
 
+// Add CORS policy to allow requests from other origins (development friendly)
+var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] ?? "http://localhost:3000,http://localhost:5000,http://localhost:5001";
+var origins = frontendOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins(origins)
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+              // Do not call AllowCredentials() here unless you explicitly need cross-origin cookies
+    });
+});
+
 // Register FluentValidation validators explicitly (no AspNetCore extension required)
 builder.Services.AddScoped<IValidator<ExpenseTracker.Dtos.Auth.RegisterRequest>, RegisterRequestValidator>();
 builder.Services.AddScoped<IValidator<ExpenseTracker.Dtos.Auth.LoginRequest>, LoginRequestValidator>();
@@ -61,21 +76,38 @@ builder.Services.AddAuthentication(options =>
 
 // NHibernate configuration (very minimal - replace with proper connection settings)
 var cfg = new Configuration();
+string usedConnectionString = builder.Configuration["CONNECTION_STRING"] ?? "Host=localhost;Port=5432;Database=postgres;Username=hasnainbukhari;Password=;";
 cfg.DataBaseIntegration(db =>
 {
-    // Connect to local Postgres as requested: database 'postgress', user 'hasnainbukhari', no password
-    db.ConnectionString = "Host=localhost;Port=5432;Database=postgress;Username=hasnainbukhari;";
+    db.ConnectionString = usedConnectionString;
     db.Dialect<PostgreSQL82Dialect>();
     db.Driver<NpgsqlDriver>();
+    // Enable SQL logging to console to capture executed SQL and parameters
+    db.LogSqlInConsole = true;
+    db.LogFormattedSql = true;
+    db.AutoCommentSql = true;
 });
 
 // load mappings from the repository assembly so embedded resources resolve correctly
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AuthMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.Entities.hbm.xml", typeof(NativeUserRepository).Assembly);
 
-var sessionFactory = cfg.BuildSessionFactory();
-builder.Services.AddSingleton<ISessionFactory>(sessionFactory);
+ISessionFactory? sessionFactory = null;
+try
+{
+    sessionFactory = cfg.BuildSessionFactory();
+    builder.Services.AddSingleton<ISessionFactory>(sessionFactory);
+    Console.WriteLine("INFO: NHibernate SessionFactory built successfully.");
+    Console.WriteLine($"INFO: Using connection string: {usedConnectionString}");
+}
+catch (Exception ex)
+{
+    // Log error and rethrow so the container fails fast; NHibernate mapping issues should be fixed rather than hidden
+    Console.WriteLine("ERROR: Failed to build NHibernate SessionFactory: " + ex);
+    throw;
+}
 
-// Register repositories
+// Register repositories (NHibernate-backed implementations). If BuildSessionFactory failed the app will not reach here.
 builder.Services.AddScoped<IUserRepository, NativeUserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, NativeRefreshTokenRepository>();
 builder.Services.AddScoped<IPasswordResetRepository, NativePasswordResetRepository>();
@@ -89,9 +121,12 @@ var app = builder.Build();
 // Run a simple SQL script or ensure DB connectivity on startup (placeholder)
 using (var scope = app.Services.CreateScope())
 {
-    var sf = scope.ServiceProvider.GetRequiredService<ISessionFactory>();
-    // In production run proper migrations; here we just test opening a session.
-    using var session = sf.OpenSession();
+    var sf = scope.ServiceProvider.GetService<ISessionFactory>();
+    if (sf != null)
+    {
+        // In production run proper migrations; here we just test opening a session.
+        using var session = sf.OpenSession();
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -102,6 +137,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+// Enable CORS middleware using the policy defined above
+app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -4,10 +4,10 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["ExpenseTracker.API.csproj", "./"]
-RUN dotnet restore "ExpenseTracker.API.csproj"
+COPY ["ExpenseTracker.API/ExpenseTracker.API.csproj", "ExpenseTracker.API/"]
+RUN dotnet restore "ExpenseTracker.API/ExpenseTracker.API.csproj"
 COPY . .
-WORKDIR "/src"
+WORKDIR "/src/ExpenseTracker.API"
 RUN dotnet publish "ExpenseTracker.API.csproj" -c Release -o /app/publish
 
 FROM base AS final

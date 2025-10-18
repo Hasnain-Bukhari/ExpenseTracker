@@ -36,7 +36,7 @@ namespace ExpenseTracker.Repository.Repositories
             var token = await session.GetAsync<RefreshToken>(id);
             if (token != null)
             {
-                token = token with { RevokedAt = DateTimeOffset.UtcNow };
+                token.RevokedAt = DateTimeOffset.UtcNow;
                 await session.UpdateAsync(token);
             }
             await tx.CommitAsync();
@@ -49,7 +49,7 @@ namespace ExpenseTracker.Repository.Repositories
             var old = await session.GetAsync<RefreshToken>(id);
             if (old != null)
             {
-                old = old with { RevokedAt = DateTimeOffset.UtcNow };
+                old.RevokedAt = DateTimeOffset.UtcNow;
                 await session.UpdateAsync(old);
             }
             await session.SaveAsync(newToken);

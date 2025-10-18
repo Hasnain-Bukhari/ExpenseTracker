@@ -25,8 +25,15 @@ namespace ExpenseTracker.Repository.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            using var session = _sessionFactory.OpenSession();
-            return await session.Query<User>().FirstOrDefaultAsync(u => u.Email == email);
+            try {
+                using var session = _sessionFactory.OpenSession();
+                return await session.Query<User>().FirstOrDefaultAsync(u => u.Email == email);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to get user by email '{email}': {ex}");
+                throw ex;
+            }
         }
 
         public async Task<User?> GetByIdAsync(Guid id)

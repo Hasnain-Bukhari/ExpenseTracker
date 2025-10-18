@@ -38,7 +38,7 @@ namespace ExpenseTracker.Service.Services.Auth
             var existing = await _userRepo.GetByEmailAsync(request.Email);
             if (existing != null) throw new InvalidOperationException("Email already exists");
 
-            var now = DateTimeOffset.UtcNow;
+            var now = DateTime.UtcNow;
             var user = new User(
                 Guid.NewGuid(),
                 request.Email,
@@ -54,8 +54,8 @@ namespace ExpenseTracker.Service.Services.Auth
                 AuthProvider.Local,
                 null,
                 null,
-                now,
-                now
+                DateTime.Now,
+                DateTime.Now
             );
 
             await _userRepo.CreateAsync(user);
@@ -115,8 +115,9 @@ namespace ExpenseTracker.Service.Services.Auth
                 {
                     if (_options.AllowSocialAutoLink)
                     {
-                        // link account
-                        byEmail = byEmail with { Provider = provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, ProviderId = verification.ProviderId };
+                        // link account - set properties directly on mutable User class
+                        byEmail.Provider = provider == "google" ? AuthProvider.Google : AuthProvider.Facebook;
+                        byEmail.ProviderId = verification.ProviderId;
                         await _userRepo.UpdateAsync(byEmail);
                         user = byEmail;
                     }
@@ -130,7 +131,7 @@ namespace ExpenseTracker.Service.Services.Auth
             if (user == null)
             {
                 var now = DateTimeOffset.UtcNow;
-                var newUser = new User(Guid.NewGuid(), verification.Email, verification.Email.ToUpperInvariant(), null, verification.Name, _options.DefaultCurrency, _options.DefaultLocale, _options.DefaultTimezone, true, true, null, provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, verification.ProviderId, now, now, now);
+                var newUser = new User(Guid.NewGuid(), verification.Email, verification.Email.ToUpperInvariant(), null, verification.Name, _options.DefaultCurrency, _options.DefaultLocale, _options.DefaultTimezone, true, true, null, provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, verification.ProviderId, DateTime.Now, DateTime.Now, DateTime.Now);
                 await _userRepo.CreateAsync(newUser);
                 user = newUser;
             }
@@ -196,8 +197,9 @@ namespace ExpenseTracker.Service.Services.Auth
             var user = await _userRepo.GetByIdAsync(existing.UserId);
             if (user == null) throw new InvalidOperationException("Invalid token");
 
-            var updated = user with { PasswordHash = HashPassword(request.NewPassword) };
-            await _userRepo.UpdateAsync(updated);
+            // Update mutable user instance instead of using record 'with' expression
+            user.PasswordHash = HashPassword(request.NewPassword);
+            await _userRepo.UpdateAsync(user);
             await _passwordResetRepo.MarkUsedAsync(existing.Id);
         }
 
