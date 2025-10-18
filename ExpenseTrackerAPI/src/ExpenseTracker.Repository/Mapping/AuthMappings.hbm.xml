@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+  <class name="ExpenseTracker.Dtos.Models.User, ExpenseTracker.Dtos" table="users">
+    <id name="Id" column="id" type="Guid">
+      <generator class="guid.comb" />
+    </id>
+    <property name="Email" column="email" />
+    <property name="NormalizedEmail" column="normalized_email" />
+    <property name="PasswordHash" column="password_hash" />
+    <property name="FullName" column="full_name" />
+    <property name="DefaultCurrency" column="default_currency" />
+    <property name="Locale" column="locale" />
+    <property name="Timezone" column="timezone" />
+    <property name="IsActive" column="is_active" />
+    <property name="IsEmailVerified" column="is_email_verified" />
+    <property name="Phone" column="phone" />
+    <property name="Provider" column="provider" type="string" />
+    <property name="ProviderId" column="provider_id" />
+    <property name="LastLoginAt" column="last_login_at" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+  </class>
+
+  <class name="ExpenseTracker.Dtos.Models.RefreshToken, ExpenseTracker.Dtos" table="refresh_tokens">
+    <id name="Id" column="id" type="Guid">
+      <generator class="guid.comb" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="TokenHash" column="token_hash" />
+    <property name="DeviceInfo" column="device_info" />
+    <property name="ExpiresAt" column="expires_at" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="RevokedAt" column="revoked_at" />
+  </class>
+
+  <class name="ExpenseTracker.Dtos.Models.PasswordResetToken, ExpenseTracker.Dtos" table="password_reset_tokens">
+    <id name="Id" column="id" type="Guid">
+      <generator class="guid.comb" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="TokenHash" column="token_hash" />
+    <property name="ExpiresAt" column="expires_at" />
+    <property name="Used" column="used" />
+    <property name="CreatedAt" column="created_at" />
+  </class>
+</hibernate-mapping>

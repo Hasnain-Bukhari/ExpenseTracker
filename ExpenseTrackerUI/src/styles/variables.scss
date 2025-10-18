@@ -1,0 +1,190 @@
+// =============================================================================
+// DESIGN TOKENS - ExpenseTracker Vue 3 + TypeScript + Vuetify 3
+// =============================================================================
+
+// Modern Color Palette
+:root {
+  // Primary Colors (Teal)
+  --color-primary: #0F766E;
+  --color-primary-50: #F0FDFA;
+  --color-primary-100: #CCFBF1;
+  --color-primary-200: #99F6E4;
+  --color-primary-300: #5EEAD4;
+  --color-primary-400: #2DD4BF;
+  --color-primary-500: #14B8A6;
+  --color-primary-600: #0D9488;
+  --color-primary-700: #0F766E;
+  --color-primary-800: #115E59;
+  --color-primary-900: #134E4A;
+
+  // Secondary Colors (Slate)
+  --color-secondary: #334155;
+  --color-secondary-50: #F8FAFC;
+  --color-secondary-100: #F1F5F9;
+  --color-secondary-200: #E2E8F0;
+  --color-secondary-300: #CBD5E1;
+  --color-secondary-400: #94A3B8;
+  --color-secondary-500: #64748B;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1E293B;
+  --color-secondary-900: #0F172A;
+
+  // Accent Colors (Orange)
+  --color-accent: #F97316;
+  --color-accent-50: #FFF7ED;
+  --color-accent-100: #FFEDD5;
+  --color-accent-200: #FED7AA;
+  --color-accent-300: #FDBA74;
+  --color-accent-400: #FB923C;
+  --color-accent-500: #F97316;
+  --color-accent-600: #EA580C;
+
+  // Semantic Colors
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-light: #DBEAFE;
+
+  // v-theme RGB fallbacks (defaults for light theme)
+  --v-surface-rgb: 255, 255, 255;
+  --v-theme-on-surface-rgb: 30, 41, 59;
+  --v-theme-primary-rgb: 15, 118, 110;
+
+  // Background & Surface
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-variant: #F1F5F9;
+  /* use theme-aware RGB for surface containers so dark mode can override */
+  --color-surface-container: rgba(var(--v-surface-rgb), 0.8);
+
+  // Text Colors
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-tertiary: #94A3B8;
+  --color-text-disabled: #CBD5E1;
+
+  // Shadows (Enhanced)
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(14, 184, 166, 0.3), 0 8px 16px rgba(14, 184, 166, 0.15);
+
+  // Border Radius
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  // Spacing Scale
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  // Typography Scale
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+  --font-size-6xl: 60px;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  // Layout
+  --header-height: 72px;
+  --nav-width: 280px;
+  --nav-collapsed-width: 72px;
+  --container-max-width: 1400px;
+
+  // Transitions
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  // Z-index Scale
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+}
+
+// Ensure root transitions for smooth theme switching
+html, body, .app-container {
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+// SCSS Variables for compatibility
+$primary: var(--color-primary);
+$secondary: var(--color-secondary);
+$accent: var(--color-accent);
+$success: var(--color-success);
+$warning: var(--color-warning);
+$error: var(--color-error);
+$info: var(--color-info);
+
+$background: var(--color-background);
+$surface: var(--color-surface);
+$surface-variant: var(--color-surface-variant);
+
+$text-primary: var(--color-text-primary);
+$text-secondary: var(--color-text-secondary);
+$text-tertiary: var(--color-text-tertiary);
+
+$shadow-sm: var(--shadow-sm);
+$shadow-md: var(--shadow-md);
+$shadow-lg: var(--shadow-lg);
+$shadow-xl: var(--shadow-xl);
+
+$border-radius: var(--radius-md);
+$border-radius-lg: var(--radius-lg);
+
+$spacing-xs: var(--space-1);
+$spacing-sm: var(--space-2);
+$spacing-md: var(--space-4);
+$spacing-lg: var(--space-6);
+$spacing-xl: var(--space-8);
+
+$header-height: var(--header-height);
+$nav-width: var(--nav-width);
+$nav-collapsed-width: var(--nav-collapsed-width);

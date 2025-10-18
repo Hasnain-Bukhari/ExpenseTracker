@@ -1,11 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using ExpenseTracker.Dtos.Models;
+// THIS FILE WAS RENAMED/REMOVED: Legacy repository interface removed to consolidate repository definitions.
+// If you need the old generic IRepository-based interface, check `IRepository<T, TKey>` in this folder.
 
-namespace ExpenseTracker.Repository.Repositories
-{
-    public interface IUserRepository : IRepository<User, Guid>
-    {
-        Task<User?> FindByEmailAsync(string email);
-    }
-}
+// (File intentionally left as placeholder to avoid duplicate type errors during compilation.)

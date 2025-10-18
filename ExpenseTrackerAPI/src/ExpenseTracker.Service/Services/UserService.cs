@@ -21,10 +21,10 @@ namespace ExpenseTracker.Service.Services
             _userRepository = userRepository;
         }
 
-        public Task<User?> GetUserAsync(Guid id) => _userRepository.GetAsync(id);
+        public Task<User?> GetUserAsync(Guid id) => _userRepository.GetByIdAsync(id);
 
-        public Task<User?> GetByEmailAsync(string email) => _userRepository.FindByEmailAsync(email);
+        public Task<User?> GetByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
 
-        public Task CreateUserAsync(User user) => _userRepository.SaveAsync(user);
+        public Task CreateUserAsync(User user) => _userRepository.CreateAsync(user);
     }
 }

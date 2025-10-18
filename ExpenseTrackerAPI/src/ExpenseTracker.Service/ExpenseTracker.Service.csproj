@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.0" />
+    <PackageReference Include="FluentValidation" Version="11.3.1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ExpenseTracker.Dtos\ExpenseTracker.Dtos.csproj" />
     <ProjectReference Include="..\ExpenseTracker.Repository\ExpenseTracker.Repository.csproj" />
   </ItemGroup>

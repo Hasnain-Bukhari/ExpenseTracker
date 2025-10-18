@@ -8,15 +8,25 @@ namespace ExpenseTracker.Dtos.Models
     public enum TransactionStatus { Pending, Cleared, Reconciled }
     public enum BudgetPeriod { Monthly, Weekly, Yearly, Custom }
 
+    // Authentication-related enum
+    public enum AuthProvider { Local, Google, Facebook, Mixed }
+
+    // User record extended for authentication needs. PasswordHash is nullable to allow social-only accounts.
     public record User(
         Guid Id,
         string Email,
-        string PasswordHash,
+        string NormalizedEmail,
+        string? PasswordHash,
         string? FullName,
         string DefaultCurrency,
         string? Locale,
         string? Timezone,
         bool IsActive,
+        bool IsEmailVerified,
+        string? Phone,
+        AuthProvider Provider,
+        string? ProviderId,
+        DateTimeOffset? LastLoginAt,
         DateTimeOffset CreatedAt,
         DateTimeOffset UpdatedAt
     );
@@ -93,5 +103,26 @@ namespace ExpenseTracker.Dtos.Models
         DateTime? EndDate,
         DateTimeOffset CreatedAt,
         DateTimeOffset UpdatedAt
+    );
+
+    // Refresh token entity for rotation and revocation handling
+    public record RefreshToken(
+        Guid Id,
+        Guid UserId,
+        string TokenHash,
+        string? DeviceInfo,
+        DateTimeOffset ExpiresAt,
+        DateTimeOffset CreatedAt,
+        DateTimeOffset? RevokedAt
+    );
+
+    // Password reset token record
+    public record PasswordResetToken(
+        Guid Id,
+        Guid UserId,
+        string TokenHash,
+        DateTimeOffset ExpiresAt,
+        bool Used,
+        DateTimeOffset CreatedAt
     );
 }
