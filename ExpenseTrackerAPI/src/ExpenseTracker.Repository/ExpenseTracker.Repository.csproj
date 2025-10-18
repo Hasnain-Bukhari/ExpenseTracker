@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NHibernate" Version="5.4.15" />
+    <PackageReference Include="NHibernate.Linq" Version="5.4.0" />
+    <PackageReference Include="FluentNHibernate" Version="2.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExpenseTracker.Dtos\ExpenseTracker.Dtos.csproj" />
+  </ItemGroup>
+</Project>
