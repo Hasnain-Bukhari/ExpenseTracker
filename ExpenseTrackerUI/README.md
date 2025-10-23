@@ -1,221 +1,415 @@
-# ExpenseTracker UI
+# Expense Tracker UI
 
-A beautiful, modern expense tracking application built with Vue 3, TypeScript, and Vuetify. Track your expenses, set financial goals, and take control of your financial future.
+A modern, responsive Vue.js 3 frontend application for the Expense Tracker, built with Vuetify 3 and TypeScript for a superior user experience.
 
-## 🚀 Features
+## 🎨 Design Philosophy
 
-- **Dashboard Overview** - Get a quick snapshot of your financial health
-- **Expense Tracking** - Monitor spending across different categories
-- **Goal Setting** - Set and track financial goals with progress visualization
-- **Budget Management** - Create and manage budgets for better control
-- **Visual Reports** - Understand finances with interactive charts
-- **Account Management** - Manage multiple accounts in one place
-- **Responsive Design** - Works beautifully on desktop, tablet, and mobile
+The UI follows Material Design principles with a focus on:
+- **Accessibility** - WCAG compliant components
+- **Responsiveness** - Mobile-first design approach
+- **Performance** - Optimized bundle size and lazy loading
+- **User Experience** - Intuitive navigation and interactions
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-- **Vue 3** with Composition API
-- **TypeScript** for type safety
-- **Vuetify 3** for Material Design components
-- **Vite** for fast development and building
-- **Pinia** for state management
-- **Vue Router** for navigation
-- **Chart.js** for data visualization
-- **SCSS** for styling
+- **Vue.js 3** - Progressive JavaScript framework with Composition API
+- **TypeScript** - Type-safe development
+- **Vuetify 3** - Material Design component framework
+- **Vite** - Lightning-fast build tool and dev server
+- **Pinia** - Modern state management
+- **Vue Router** - Client-side routing with guards
+- **Axios** - HTTP client with interceptors
+- **SCSS** - Enhanced CSS with variables and mixins
 
-## 📋 Prerequisites
+## 📁 Project Structure
 
-- Node.js >= 16.0.0
-- npm or yarn package manager
+```
+ExpenseTrackerUI/
+├── src/
+│   ├── components/              # Reusable Vue components
+│   │   ├── auth/               # Authentication components
+│   │   │   ├── AuthCard.vue    # Login/Register card
+│   │   │   ├── PasswordField.vue # Password input with validation
+│   │   │   └── SocialLoginButton.vue # Social auth buttons
+│   │   ├── Dashboard/          # Dashboard components
+│   │   │   ├── AccountSummary.vue
+│   │   │   ├── RecentTransactions.vue
+│   │   │   ├── QuickActions.vue
+│   │   │   └── BudgetOverview.vue
+│   │   └── Layout/             # Layout components
+│   │       ├── AppHeader.vue   # Top navigation
+│   │       ├── AppNav.vue      # Side navigation
+│   │       ├── AppFooter.vue   # Footer
+│   │       └── AppDrawer.vue    # Mobile drawer
+│   ├── views/                  # Page components
+│   │   ├── auth/               # Authentication pages
+│   │   │   ├── LoginView.vue   # Login page
+│   │   │   ├── RegisterView.vue # Registration page
+│   │   │   ├── ForgotPasswordView.vue # Password reset
+│   │   │   └── ResetPasswordView.vue # Password reset form
+│   │   ├── AccountsView.vue    # Account management
+│   │   ├── AccountTypesView.vue # Account type management
+│   │   ├── CategoriesView.vue  # Category management
+│   │   ├── CurrenciesView.vue   # Currency management
+│   │   ├── HomeView.vue        # Dashboard home
+│   │   ├── BudgetsView.vue     # Budget management
+│   │   ├── GoalsView.vue       # Financial goals
+│   │   ├── ReportsView.vue     # Reports and analytics
+│   │   └── SettingsView.vue    # User settings
+│   ├── stores/                 # Pinia state management
+│   │   ├── auth.ts            # Authentication state
+│   │   ├── themeStore.ts      # Theme management
+│   │   └── index.ts           # Store exports
+│   ├── types/                  # TypeScript definitions
+│   │   ├── auth.ts            # Authentication types
+│   │   ├── account.ts         # Account types
+│   │   ├── accountType.ts     # Account type types
+│   │   ├── category.ts        # Category types
+│   │   ├── currency.ts        # Currency types
+│   │   └── index.d.ts         # Global type declarations
+│   ├── lib/                    # Utilities and services
+│   │   └── api.ts             # API client with interceptors
+│   ├── composables/            # Vue composables
+│   │   └── useAuth.ts         # Authentication composable
+│   ├── styles/                 # Global styles
+│   │   ├── global.scss        # Global styles
+│   │   ├── variables.scss     # SCSS variables
+│   │   └── themes.ts          # Theme configuration
+│   ├── utils/                  # Utility functions
+│   │   ├── formatters.ts      # Data formatting utilities
+│   │   ├── mockData.ts        # Mock data for development
+│   │   └── themeUtils.ts      # Theme utility functions
+│   ├── router/                 # Vue Router configuration
+│   │   └── index.ts           # Route definitions and guards
+│   ├── App.vue                # Root component
+│   └── main.ts                # Application entry point
+├── public/                     # Static assets
+│   ├── favicon.svg            # Site favicon
+│   ├── logo.svg               # Application logo
+│   └── social-callback.html   # Social auth callback
+├── package.json               # Dependencies and scripts
+├── vite.config.ts             # Vite configuration
+├── tsconfig.json              # TypeScript configuration
+└── README.md                  # This file
+```
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-1. **Install dependencies**
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Backend API running (see API README)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd ExpenseTracker/ExpenseTrackerUI
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Start development server**
+3. **Configure environment**
+   - Create `.env` file:
+   ```env
+   VITE_API_BASE=http://localhost:5001/v1/
+   VITE_APP_TITLE=Expense Tracker
+   ```
+
+4. **Start development server**
    ```bash
    npm run dev
    ```
 
-3. **Open your browser**
-   Navigate to `http://localhost:3000` to see the application.
+5. **Access the application**
+   - Navigate to `http://localhost:3000`
 
-## 📦 Available Scripts
+### Docker Setup (Alternative)
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
+For easier setup and consistent environment:
 
-## 🏗️ Project Structure
+1. **Using Docker Compose (from project root)**
+   ```bash
+   cd /path/to/ExpenseTracker
+   ./docker-manage.sh start
+   ```
 
-```
-src/
-├── components/
-│   ├── Layout/
-│   │   ├── AppHeader.vue      # Top navigation bar
-│   │   ├── AppNav.vue         # Side navigation menu
-│   │   └── AppFooter.vue      # Application footer
-│   └── Dashboard/
-│       ├── SummaryCards.vue   # Financial summary cards
-│       ├── MiniChart.vue      # Spending trend chart
-│       ├── GoalsList.vue      # Financial goals with progress
-│       └── RecentTransactions.vue # Recent transactions table
-├── views/
-│   ├── HomeView.vue           # Main dashboard page
-│   ├── AboutView.vue          # About page
-│   ├── AccountsView.vue       # Accounts management
-│   ├── GoalsView.vue          # Goals management
-│   ├── BudgetsView.vue        # Budget management
-│   ├── ReportsView.vue        # Financial reports
-│   └── SettingsView.vue       # Application settings
-├── stores/
-│   └── index.ts               # Pinia store with mock data
-├── router/
-│   └── index.ts               # Vue Router configuration
-├── types/
-│   └── index.d.ts             # TypeScript type definitions
-├── utils/
-│   ├── mockData.ts            # Sample data for development
-│   └── formatters.ts          # Utility functions for formatting
-├── styles/
-│   ├── variables.scss         # SCSS variables and design tokens
-│   └── global.scss            # Global styles and utilities
-├── App.vue                    # Root component
-└── main.ts                    # Application entry point
+2. **Manual Docker build**
+   ```bash
+   # Build the UI container
+   docker build -t expense-tracker-ui .
+   
+   # Run the container
+   docker run -d --name frontend -p 3000:80 expense-tracker-ui
+   ```
+
+3. **Access the application**
+   - Frontend: `http://localhost:3000`
+   - The UI will automatically proxy API calls to the backend
+
+### Environment Variables
+
+**Local Development (.env)**
+```env
+VITE_API_BASE=http://localhost:5001/v1/
+VITE_APP_TITLE=Expense Tracker
 ```
 
-## 🎨 Design System
+**Docker Environment (.env.docker)**
+```env
+VITE_API_BASE=http://api:80/v1/
+VITE_APP_TITLE=Expense Tracker
+```
 
-### Color Palette
-- **Primary**: `#2E7D7A` (Teal)
-- **Secondary**: `#455A64`
-- **Accent**: `#FF7043`
-- **Success**: `#4CAF50`
-- **Warning**: `#FF9800`
-- **Error**: `#F44336`
-- **Background**: `#F7FAFC`
+## 🎨 UI Components
 
-### Key Features
-- Material Design components via Vuetify
-- Responsive layout with mobile-first approach
-- Smooth animations and micro-interactions
-- Accessible design with proper ARIA attributes
-- Consistent spacing and typography
+### Layout Components
 
-## 📊 Mock Data
+**AppHeader**
+- Top navigation bar
+- User menu and notifications
+- Theme toggle button
 
-The application comes with comprehensive mock data including:
-- Sample bank accounts (checking, savings, credit)
-- Recent transactions with categories
-- Financial goals with progress tracking
-- Budget allocations and spending
+**AppNav**
+- Side navigation drawer
+- Collapsible menu items
+- Active route highlighting
 
-## 🔧 Customization
+**AppFooter**
+- Footer information
+- Links and copyright
 
-### Adding New Routes
-1. Create a new view component in `src/views/`
-2. Add the route to `src/router/index.ts`
-3. Update navigation in `src/components/Layout/AppNav.vue`
+### Feature Components
 
-### Extending the Store
-The Pinia store in `src/stores/index.ts` can be extended with:
-- New state properties
-- Additional computed getters
-- Action methods for API integration
+**AuthCard**
+- Unified login/register interface
+- Form validation
+- Social login integration
 
-### Styling
-- Modify design tokens in `src/styles/variables.scss`
-- Add global styles in `src/styles/global.scss`
-- Component-specific styles use scoped SCSS
+**AccountSummary**
+- Account balance overview
+- Quick account actions
+- Visual balance indicators
 
-## 🔌 API Integration
+**RecentTransactions**
+- Latest transaction list
+- Quick transaction actions
+- Filtering and sorting
 
-The application is structured for easy API integration:
+### Form Components
 
-1. **Replace mock data** in `src/utils/mockData.ts` with API calls
-2. **Add Axios interceptors** for authentication and error handling
-3. **Update store actions** to make HTTP requests
-4. **Add loading states** and error handling in components
+**PasswordField**
+- Secure password input
+- Strength indicator
+- Show/hide toggle
 
-Example API integration point:
+**SocialLoginButton**
+- Social authentication buttons
+- Loading states
+- Error handling
+
+## 🔐 Authentication Flow
+
+### Login Process
+1. User enters credentials
+2. API validates and returns JWT token
+3. Token stored in memory and localStorage
+4. User redirected to dashboard
+5. Token included in subsequent requests
+
+### Token Management
+- **Access Token** - Short-lived (15 minutes)
+- **Refresh Token** - Long-lived (7 days)
+- **Automatic Refresh** - Seamless token renewal
+- **Logout** - Token cleanup and redirect
+
+### Route Guards
+- **Authentication Required** - Protected routes
+- **Guest Only** - Public routes (login/register)
+- **Role-based** - Future admin routes
+
+## 🎯 State Management
+
+### Pinia Stores
+
+**Auth Store**
 ```typescript
-// In store actions
-const fetchTransactions = async () => {
-  try {
-    const response = await axios.get('/api/transactions')
-    transactions.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch transactions:', error)
-  }
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  login(credentials: LoginCredentials): Promise<void>
+  logout(): void
+  refreshToken(): Promise<void>
 }
 ```
 
-## 🚀 Deployment
+**Theme Store**
+```typescript
+interface ThemeState {
+  isDark: boolean
+  primaryColor: string
+  toggleTheme(): void
+  setPrimaryColor(color: string): void
+}
+```
 
-### Build for Production
+## 🌐 API Integration
+
+### API Client
+- **Base Configuration** - Environment-based URLs
+- **Request Interceptors** - Automatic token attachment
+- **Response Interceptors** - Token refresh handling
+- **Error Handling** - Centralized error management
+
+### API Services
+```typescript
+// Account management
+export const accountApi = {
+  list(): Promise<AccountDto[]>
+  get(id: string): Promise<AccountDto>
+  create(data: CreateAccountDto): Promise<AccountDto>
+  update(id: string, data: UpdateAccountDto): Promise<AccountDto>
+  delete(id: string): Promise<void>
+}
+
+// Similar patterns for other entities
+```
+
+## 🎨 Theming System
+
+### Theme Configuration
+- **Material Design 3** - Latest design system
+- **Custom Colors** - Brand-specific color palette
+- **Dark/Light Modes** - User preference support
+- **Responsive Breakpoints** - Mobile-first design
+
+### SCSS Variables
+```scss
+// Color palette
+$primary: #1976d2
+$secondary: #424242
+$accent: #82b1ff
+$error: #f44336
+$warning: #ff9800
+$info: #2196f3
+$success: #4caf50
+
+// Typography
+$font-family: 'Roboto', sans-serif
+$font-size-base: 16px
+$line-height-base: 1.5
+
+// Spacing
+$spacing-unit: 8px
+$border-radius: 4px
+```
+
+## 📱 Responsive Design
+
+### Breakpoints
+- **Mobile** - < 600px
+- **Tablet** - 600px - 960px
+- **Desktop** - > 960px
+
+### Mobile Features
+- **Touch-friendly** - Large tap targets
+- **Swipe Navigation** - Gesture support
+- **Collapsible Menu** - Space-efficient navigation
+- **Optimized Forms** - Mobile keyboard support
+
+## 🧪 Development
+
+### Available Scripts
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript checks
+```
+
+### Code Style
+- **ESLint** - Code quality and consistency
+- **Prettier** - Code formatting
+- **TypeScript** - Type safety
+- **Vue Style Guide** - Vue.js best practices
+
+### Component Guidelines
+- **Single Responsibility** - One purpose per component
+- **Props Validation** - Type-safe prop definitions
+- **Event Handling** - Clear event naming
+- **Accessibility** - ARIA labels and keyboard navigation
+
+## 🚀 Build and Deployment
+
+### Production Build
 ```bash
 npm run build
 ```
 
-The `dist/` folder will contain the production-ready files.
+### Build Output
+- **Optimized Bundle** - Minified and tree-shaken
+- **Code Splitting** - Route-based lazy loading
+- **Asset Optimization** - Compressed images and fonts
+- **Cache Busting** - Versioned asset names
 
 ### Deployment Options
-- **Netlify** - Drag and drop the `dist` folder
-- **Vercel** - Connect your GitHub repository
-- **Firebase Hosting** - Use Firebase CLI
-- **Traditional hosting** - Upload `dist` contents to web server
+- **Static Hosting** - Netlify, Vercel, GitHub Pages
+- **CDN** - CloudFlare, AWS CloudFront
+- **Server** - Nginx, Apache
 
-## 🧪 Development Guidelines
+## 🔍 Troubleshooting
 
-### Code Style
-- Use TypeScript strict mode
-- Follow Vue 3 Composition API patterns
-- Use `<script setup>` syntax
-- Implement proper type definitions
+### Common Issues
 
-### Component Structure
-```vue
-<template>
-  <!-- Template content -->
-</template>
+**Build Errors:**
+- Check Node.js version compatibility
+- Clear node_modules and reinstall
+- Verify TypeScript configuration
 
-<script setup lang="ts">
-// Imports
-// Reactive state
-// Computed properties
-// Methods
-// Lifecycle hooks
-</script>
+**API Connection Issues:**
+- Verify backend is running
+- Check CORS configuration
+- Validate API base URL
 
-<style lang="scss" scoped>
-/* Component styles */
-</style>
-```
+**Authentication Problems:**
+- Check token expiration
+- Verify JWT secret consistency
+- Clear browser storage
 
-## 🤝 Contributing
+**Styling Issues:**
+- Verify Vuetify theme configuration
+- Check SCSS compilation
+- Validate CSS class names
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 📚 Additional Resources
 
-## 📝 License
+- [Vue.js 3 Documentation](https://vuejs.org/)
+- [Vuetify 3 Documentation](https://vuetifyjs.com/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Pinia Documentation](https://pinia.vuejs.org/)
+- [Vite Guide](https://vitejs.dev/guide/)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🎯 Future Enhancements
 
-## 🙏 Acknowledgments
+### Planned Features
+- **PWA Support** - Offline functionality
+- **Real-time Updates** - WebSocket integration
+- **Advanced Charts** - Financial analytics
+- **Mobile App** - React Native or Flutter
+- **Internationalization** - Multi-language support
 
-- [Vue.js](https://vuejs.org/) - The Progressive JavaScript Framework
-- [Vuetify](https://vuetifyjs.com/) - Material Design Components
-- [Material Design Icons](https://materialdesignicons.com/) - Beautiful icons
-- [Chart.js](https://www.chartjs.org/) - Simple yet flexible charting
+### Performance Optimizations
+- **Virtual Scrolling** - Large data sets
+- **Image Optimization** - WebP format
+- **Bundle Analysis** - Size optimization
+- **Caching Strategy** - Service worker
 
 ---
 
-Built with ❤️ using Vue 3 + TypeScript + Vuetify
+**Built with Vue.js 3 and modern web technologies**

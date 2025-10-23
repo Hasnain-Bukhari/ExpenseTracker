@@ -13,7 +13,6 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
     networks:
       - expense-tracker-network
     healthcheck:
@@ -25,7 +24,7 @@ services:
   # .NET API Backend
   api:
     build:
-      context: ./src
+      context: ./ExpenseTrackerAPI/src
       dockerfile: ExpenseTracker.API/Dockerfile
     container_name: expense-tracker-api
     environment:
@@ -33,6 +32,7 @@ services:
       - CONNECTION_STRING=Host=postgres;Port=5432;Database=expense_tracker_dev;Username=postgres;Password=postgres
       - JWT_SECRET=replace_this_secret_for_dev
       - ASPNETCORE_URLS=http://+:80
+      - FRONTEND_ORIGINS=http://frontend:80,http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,7 +50,7 @@ services:
   # Vue.js Frontend
   frontend:
     build:
-      context: ../ExpenseTrackerUI
+      context: ./ExpenseTrackerUI
       dockerfile: Dockerfile
     container_name: expense-tracker-frontend
     ports:

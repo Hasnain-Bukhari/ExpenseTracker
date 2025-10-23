@@ -45,7 +45,7 @@ namespace ExpenseTracker.Service.Services.Auth
                 request.Email.ToUpperInvariant(),
                 HashPassword(request.Password),
                 request.Name,
-                _options.DefaultCurrency,
+                null, // DefaultCurrencyId - wiring to Currency entity will be added later
                 _options.DefaultLocale,
                 _options.DefaultTimezone,
                 true,
@@ -131,7 +131,7 @@ namespace ExpenseTracker.Service.Services.Auth
             if (user == null)
             {
                 var now = DateTimeOffset.UtcNow;
-                var newUser = new User(Guid.NewGuid(), verification.Email, verification.Email.ToUpperInvariant(), null, verification.Name, _options.DefaultCurrency, _options.DefaultLocale, _options.DefaultTimezone, true, true, null, provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, verification.ProviderId, DateTime.Now, DateTime.Now, DateTime.Now);
+                var newUser = new User(Guid.NewGuid(), verification.Email, verification.Email.ToUpperInvariant(), null, verification.Name, null, _options.DefaultLocale, _options.DefaultTimezone, true, true, null, provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, verification.ProviderId, DateTime.Now, DateTime.Now, DateTime.Now);
                 await _userRepo.CreateAsync(newUser);
                 user = newUser;
             }

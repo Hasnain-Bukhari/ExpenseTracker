@@ -1,0 +1,11 @@
+# Ignore paths for ExpenseTrackerAPI Docker build
+bin/
+obj/
+.vs/
+.vscode/
+.git/
+.github/
+*.user
+*.suo
+*.log
+artifacts/

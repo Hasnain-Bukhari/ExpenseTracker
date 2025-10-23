@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Add CORS policy to allow requests from other origins (development friendly)
-var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] ?? "http://localhost:3000,http://localhost:5000,http://localhost:5001";
+var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] ?? "http://localhost:3000,http://localhost:5000,http://localhost:5001,http://frontend:80";
 var origins = frontendOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 builder.Services.AddCors(options =>
@@ -92,6 +92,9 @@ cfg.DataBaseIntegration(db =>
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AuthMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.Entities.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.CategoryMappings.hbm.xml", typeof(NativeCategoryRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.CurrencyMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountTypeMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 
 ISessionFactory? sessionFactory = null;
 try
@@ -115,6 +118,17 @@ builder.Services.AddScoped<IPasswordResetRepository, NativePasswordResetReposito
 // Register category repository/service
 builder.Services.AddScoped<ICategoryRepository, NativeCategoryRepository>();
 builder.Services.AddScoped<CategoryService>();
+
+// Currency & AccountType repositories
+builder.Services.AddScoped<ICurrencyRepository, NativeCurrencyRepository>();
+builder.Services.AddScoped<IAccountTypeRepository, NativeAccountTypeRepository>();
+// Account repository placeholder (implement later)
+builder.Services.AddScoped<IAccountRepository, NativeAccountRepository>();
+builder.Services.AddScoped<AccountService>();
+// Register services
+builder.Services.AddScoped<CurrencyService>();
+builder.Services.AddScoped<AccountTypeService>();
+// Service-level implementations to be added in ExpenseTracker.Service project if needed
 
 // Register auth service
 builder.Services.AddScoped<IAuthService, AuthService>();

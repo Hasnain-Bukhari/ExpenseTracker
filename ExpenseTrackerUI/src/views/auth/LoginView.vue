@@ -360,7 +360,7 @@ const cancelSocialLogin = () => {
 // Auto-fill demo credentials on mount
 onMounted(() => {
   // Pre-fill with demo credentials for easy testing
-  form.email = 'admin@example.com'
-  form.password = 'password123'
+  form.email = 'syedhasnainbukhari01@hotmail.com'
+  form.password = 'Hasnain@123'
 })
 </script>

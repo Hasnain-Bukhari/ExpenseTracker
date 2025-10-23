@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+  <class name="ExpenseTracker.Dtos.Models.Account, ExpenseTracker.Dtos" table="accounts">
+    <id name="Id" column="id" type="Guid">
+      <generator class="assigned" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="Name" column="name" />
+    <property name="AccountTypeId" column="account_type_id" />
+    <property name="CurrencyId" column="currency_id" />
+    <many-to-one name="AccountType" class="ExpenseTracker.Dtos.Models.AccountType, ExpenseTracker.Dtos" column="account_type_id" insert="false" update="false" />
+    <many-to-one name="Currency" class="ExpenseTracker.Dtos.Models.Currency, ExpenseTracker.Dtos" column="currency_id" insert="false" update="false" />
+    <property name="IsSavings" column="is_savings" />
+    <property name="OpeningBalance" column="opening_balance" />
+    <property name="IncludeInNetworth" column="include_in_networth" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+  </class>
+</hibernate-mapping>

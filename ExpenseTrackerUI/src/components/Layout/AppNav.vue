@@ -103,6 +103,120 @@
 
       <v-divider class="my-3 mx-2" />
 
+      <!-- Categories Navigation Items (new) -->
+      <div class="nav-section">
+        <v-list-subheader 
+          class="nav-section-title"
+          :class="{ collapsed: isCollapsed && !$vuetify.display.mobile }"
+        >
+          LOOKUPS - CATEGORIES
+        </v-list-subheader>
+
+        <v-list-item
+          :to="'/categories'"
+          prepend-icon="mdi-tag-multiple"
+          title="Categories"
+          :active="isActive('/categories')"
+          class="nav-item mb-1"
+          :class="{ active: isActive('/categories') }"
+          rounded="xl"
+          aria-label="Categories"
+          v-motion
+          :initial="{ opacity: 0, x: -20 }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 350, type: 'spring', stiffness: 200 } }"
+        >
+          <template v-slot:prepend>
+            <v-icon 
+              icon="mdi-tag-multiple"
+              class="nav-item-icon"
+            />
+          </template>
+
+          <template v-slot:title>
+            <span class="nav-item-text" :class="{ collapsed: isCollapsed && !$vuetify.display.mobile }">
+              Categories
+            </span>
+          </template>
+
+          <v-tooltip
+            v-if="isCollapsed"
+            activator="parent"
+            location="end"
+            :text="'Categories'"
+          />
+        </v-list-item>
+
+        <v-list-item
+          :to="'/account-types'"
+          prepend-icon="mdi-bank"
+          title="Account Types"
+          :active="isActive('/account-types')"
+          class="nav-item mb-1"
+          :class="{ active: isActive('/account-types') }"
+          rounded="xl"
+          aria-label="Account Types"
+          v-motion
+          :initial="{ opacity: 0, x: -20 }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 400, type: 'spring', stiffness: 200 } }"
+        >
+          <template v-slot:prepend>
+            <v-icon 
+              icon="mdi-bank"
+              class="nav-item-icon"
+            />
+          </template>
+
+          <template v-slot:title>
+            <span class="nav-item-text" :class="{ collapsed: isCollapsed && !$vuetify.display.mobile }">
+              Account Types
+            </span>
+          </template>
+
+          <v-tooltip
+            v-if="isCollapsed"
+            activator="parent"
+            location="end"
+            :text="'Account Types'"
+          />
+        </v-list-item>
+
+        <v-list-item
+          :to="'/currencies'"
+          prepend-icon="mdi-currency-usd"
+          title="Currencies"
+          :active="isActive('/currencies')"
+          class="nav-item mb-1"
+          :class="{ active: isActive('/currencies') }"
+          rounded="xl"
+          aria-label="Currencies"
+          v-motion
+          :initial="{ opacity: 0, x: -20 }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 450, type: 'spring', stiffness: 200 } }"
+        >
+          <template v-slot:prepend>
+            <v-icon 
+              icon="mdi-currency-usd"
+              class="nav-item-icon"
+            />
+          </template>
+
+          <template v-slot:title>
+            <span class="nav-item-text" :class="{ collapsed: isCollapsed && !$vuetify.display.mobile }">
+              Currencies
+            </span>
+          </template>
+
+          <v-tooltip
+            v-if="isCollapsed"
+            activator="parent"
+            location="end"
+            :text="'Currencies'"
+          />
+        </v-list-item>
+      </div>
+
+      <v-divider class="my-3 mx-2" />
+
       <!-- Secondary Navigation Items -->
       <div class="nav-section">
         <v-list-subheader 

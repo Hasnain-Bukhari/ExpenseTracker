@@ -4,12 +4,12 @@
     <AppNav />
     <v-main>
       <v-container fluid class="pa-6">
-        <div class="accounts-page">
+        <div class="currencies-page">
           <!-- Page Header -->
           <div class="page-header d-flex justify-space-between align-center mb-6">
             <div>
-              <h2 class="text-h5 mb-1">Accounts</h2>
-              <p class="text-body-2 text-medium-emphasis mb-0">Manage your financial accounts and track balances</p>
+              <h2 class="text-h5 mb-1">Currencies</h2>
+              <p class="text-body-2 text-medium-emphasis mb-0">Manage currencies and exchange rates</p>
             </div>
 
             <div class="actions d-flex gap-3">
@@ -19,7 +19,7 @@
                 @click="openCreateDialog"
                 prepend-icon="mdi-plus"
               >
-                New Account
+                New Currency
               </v-btn>
             </div>
           </div>
@@ -29,18 +29,18 @@
             <v-progress-circular indeterminate color="primary" size="64" />
           </div>
 
-          <!-- Accounts Grid -->
-          <v-row v-else-if="accounts.length > 0">
+          <!-- Currencies Grid -->
+          <v-row v-else-if="currencies.length > 0">
             <v-col 
               cols="12" 
               sm="6" 
               md="4" 
               lg="3" 
-              v-for="account in accounts" 
-              :key="account.id"
+              v-for="currency in currencies" 
+              :key="currency.id"
             >
               <v-card 
-                class="account-card h-100"
+                class="currency-card h-100"
                 elevation="2"
                 hover
               >
@@ -50,30 +50,22 @@
                     <div class="flex-grow-1">
                       <div class="d-flex align-center mb-2">
                         <v-icon 
-                          :icon="getAccountIcon(account)"
-                          :color="getAccountColor(account)"
+                          icon="mdi-currency-usd"
+                          color="primary"
                           size="24"
                           class="mr-2"
                         />
                         <h3 class="text-subtitle-1 mb-0 font-weight-medium">
-                          {{ account.name }}
+                          {{ currency.code }}
                         </h3>
                       </div>
                       <div class="d-flex gap-2 mb-2">
                         <v-chip 
-                          :color="getAccountTypeColor(account)"
+                          color="primary"
                           size="small"
                           variant="tonal"
                         >
-                          {{ getAccountTypeName(account.accountTypeId) }}
-                        </v-chip>
-                        <v-chip 
-                          v-if="account.isSavings"
-                          color="success"
-                          size="small"
-                          variant="tonal"
-                        >
-                          Savings
+                          {{ currency.symbol }}
                         </v-chip>
                       </div>
                     </div>
@@ -92,13 +84,13 @@
                         </v-btn>
                       </template>
                       <v-list density="compact">
-                        <v-list-item @click="editAccount(account)">
+                        <v-list-item @click="editCurrency(currency)">
                           <template v-slot:prepend>
                             <v-icon icon="mdi-pencil" size="small" />
                           </template>
                           <v-list-item-title>Edit</v-list-item-title>
                         </v-list-item>
-                        <v-list-item @click="deleteAccount(account)" class="text-error">
+                        <v-list-item @click="deleteCurrency(currency)" class="text-error">
                           <template v-slot:prepend>
                             <v-icon icon="mdi-delete" size="small" color="error" />
                           </template>
@@ -108,13 +100,13 @@
                     </v-menu>
                   </div>
 
-                  <!-- Balance Display -->
-                  <div class="balance-section mb-3">
-                    <div class="text-h6 font-weight-bold" :class="getBalanceColor(account.openingBalance)">
-                      {{ formatCurrency(account.openingBalance) }}
+                  <!-- Currency Info -->
+                  <div class="currency-info mb-3">
+                    <div class="text-h6 font-weight-bold text-primary mb-1">
+                      {{ currency.name }}
                     </div>
                     <div class="text-caption text-medium-emphasis">
-                      Opening Balance
+                      Currency Code: {{ currency.code }}
                     </div>
                   </div>
 
@@ -122,12 +114,12 @@
                   <v-divider class="my-3" />
                   <div class="d-flex justify-space-between align-center">
                     <div class="text-caption text-medium-emphasis">
-                      Created {{ formatDate(account.createdAt) }}
+                      Created {{ formatDate(currency.createdAt) }}
                     </div>
                     <v-icon 
-                      :icon="account.includeInNetworth ? 'mdi-chart-line' : 'mdi-chart-line-variant'"
+                      icon="mdi-check-circle"
                       size="16"
-                      :color="account.includeInNetworth ? 'success' : 'medium-emphasis'"
+                      color="success"
                     />
                   </div>
                 </v-card-text>
@@ -138,14 +130,14 @@
           <!-- Empty State -->
           <div v-else class="empty-state text-center py-12">
             <v-icon 
-              icon="mdi-bank-outline" 
+              icon="mdi-currency-usd" 
               size="64" 
               color="medium-emphasis" 
               class="mb-4"
             />
-            <h3 class="text-h6 mb-2">No Accounts</h3>
+            <h3 class="text-h6 mb-2">No Currencies</h3>
             <p class="text-body-2 text-medium-emphasis mb-4">
-              Get started by creating your first account
+              Get started by adding your first currency
             </p>
             <v-btn 
               color="primary" 
@@ -153,7 +145,7 @@
               @click="openCreateDialog"
               prepend-icon="mdi-plus"
             >
-              Create Account
+              Add Currency
             </v-btn>
           </div>
 
@@ -161,7 +153,7 @@
           <v-dialog v-model="showDialog" persistent max-width="600">
             <v-card>
               <v-card-title class="text-h6 pa-6 pb-0">
-                {{ editingAccount ? 'Edit Account' : 'New Account' }}
+                {{ editingCurrency ? 'Edit Currency' : 'New Currency' }}
               </v-card-title>
               
               <v-card-text class="pa-6">
@@ -169,65 +161,41 @@
                   <v-row>
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="form.name"
-                        label="Account Name"
-                        placeholder="e.g., Chase Checking, Savings Account"
-                        :rules="nameRules"
-                        variant="outlined"
-                        prepend-inner-icon="mdi-bank"
-                      />
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-select
-                        v-model="form.accountTypeId"
-                        :items="accountTypeOptions"
-                        label="Account Type"
-                        :rules="[v => !!v || 'Account type is required']"
+                        v-model="form.code"
+                        label="Currency Code"
+                        placeholder="e.g., USD, EUR, GBP"
+                        :rules="codeRules"
                         variant="outlined"
                         prepend-inner-icon="mdi-tag"
-                      />
-                    </v-col>
-                  </v-row>
-
-                  <v-row>
-                    <v-col cols="12" md="6">
-                      <v-select
-                        v-model="form.currencyId"
-                        :items="currencyOptions"
-                        label="Currency"
-                        :rules="[v => !!v || 'Currency is required']"
-                        variant="outlined"
-                        prepend-inner-icon="mdi-currency-usd"
+                        hint="3-letter ISO currency code"
+                        persistent-hint
                       />
                     </v-col>
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model.number="form.openingBalance"
-                        label="Opening Balance"
-                        type="number"
-                        step="0.01"
-                        :rules="balanceRules"
+                        v-model="form.symbol"
+                        label="Currency Symbol"
+                        placeholder="e.g., $, €, £"
+                        :rules="symbolRules"
                         variant="outlined"
-                        prepend-inner-icon="mdi-cash"
+                        prepend-inner-icon="mdi-currency-usd"
+                        hint="Currency symbol"
+                        persistent-hint
                       />
                     </v-col>
                   </v-row>
 
                   <v-row>
-                    <v-col cols="12" md="6">
-                      <v-switch
-                        v-model="form.isSavings"
-                        label="This is a savings account"
-                        color="success"
-                        inset
-                      />
-                    </v-col>
-                    <v-col cols="12" md="6">
-                      <v-switch
-                        v-model="form.includeInNetworth"
-                        label="Include in net worth calculation"
-                        color="primary"
-                        inset
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="form.name"
+                        label="Currency Name"
+                        placeholder="e.g., US Dollar, Euro, British Pound"
+                        :rules="nameRules"
+                        variant="outlined"
+                        prepend-inner-icon="mdi-text"
+                        hint="Full currency name"
+                        persistent-hint
                       />
                     </v-col>
                   </v-row>
@@ -246,11 +214,11 @@
                 <v-btn 
                   color="primary" 
                   variant="elevated"
-                  @click="saveAccount" 
+                  @click="saveCurrency" 
                   :loading="saving"
                   :disabled="!formValid"
                 >
-                  {{ editingAccount ? 'Update' : 'Create' }}
+                  {{ editingCurrency ? 'Update' : 'Create' }}
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -260,7 +228,7 @@
           <v-dialog v-model="showDeleteDialog" persistent max-width="400">
             <v-card>
               <v-card-title class="text-h6 pa-6 pb-0">
-                Delete Account
+                Delete Currency
               </v-card-title>
               
               <v-card-text class="pa-6">
@@ -268,11 +236,11 @@
                   <v-icon icon="mdi-alert-circle" color="warning" size="24" class="mr-3" />
                   <span class="text-body-1">
                     Are you sure you want to delete 
-                    <strong>"{{ accountToDelete?.name }}"</strong>?
+                    <strong>"{{ currencyToDelete?.name }} ({{ currencyToDelete?.code }})"</strong>?
                   </span>
                 </div>
                 <p class="text-body-2 text-medium-emphasis">
-                  This action cannot be undone. All transaction history for this account will be lost.
+                  This action cannot be undone. All accounts using this currency will be affected.
                 </p>
               </v-card-text>
               
@@ -309,14 +277,10 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
-import { accountApi, accountTypeApi, currencyApi } from '@/lib/api'
-import type { AccountDto, CreateAccountDto, UpdateAccountDto } from '@/types/account'
-import type { AccountTypeDto } from '@/types/accountType'
-import type { CurrencyDto } from '@/types/currency'
+import { currencyApi } from '@/lib/api'
+import type { CurrencyDto, CreateCurrencyDto, UpdateCurrencyDto } from '@/types/currency'
 
 // Reactive data
-const accounts = ref<AccountDto[]>([])
-const accountTypes = ref<AccountTypeDto[]>([])
 const currencies = ref<CurrencyDto[]>([])
 const loading = ref(false)
 const saving = ref(false)
@@ -325,221 +289,143 @@ const showDialog = ref(false)
 const showDeleteDialog = ref(false)
 const formValid = ref(false)
 
-const editingAccount = ref<AccountDto | null>(null)
-const accountToDelete = ref<AccountDto | null>(null)
+const editingCurrency = ref<CurrencyDto | null>(null)
+const currencyToDelete = ref<CurrencyDto | null>(null)
 
 // Form data
-const form = reactive<CreateAccountDto>({
+const form = reactive<CreateCurrencyDto>({
+  code: '',
   name: '',
-  accountTypeId: '',
-  currencyId: '',
-  isSavings: false,
-  openingBalance: 0,
-  includeInNetworth: true
+  symbol: ''
 })
 
 // Form validation rules
-const nameRules = [
-  (v: string) => !!v || 'Name is required',
-  (v: string) => (v && v.length >= 2) || 'Name must be at least 2 characters',
-  (v: string) => (v && v.length <= 50) || 'Name must be less than 50 characters'
+const codeRules = [
+  (v: string) => !!v || 'Currency code is required',
+  (v: string) => (v && v.length === 3) || 'Currency code must be exactly 3 characters',
+  (v: string) => (v && /^[A-Z]{3}$/.test(v)) || 'Currency code must be uppercase letters only'
 ]
 
-const balanceRules = [
-  (v: number) => v !== null && v !== undefined || 'Balance is required',
-  (v: number) => !isNaN(v) || 'Balance must be a valid number'
+const nameRules = [
+  (v: string) => !!v || 'Currency name is required',
+  (v: string) => (v && v.length >= 2) || 'Currency name must be at least 2 characters',
+  (v: string) => (v && v.length <= 50) || 'Currency name must be less than 50 characters'
+]
+
+const symbolRules = [
+  (v: string) => !!v || 'Currency symbol is required',
+  (v: string) => (v && v.length >= 1) || 'Currency symbol is required',
+  (v: string) => (v && v.length <= 5) || 'Currency symbol must be less than 5 characters'
 ]
 
 // Computed properties
 const formRef = ref()
 
-const accountTypeOptions = computed(() => 
-  accountTypes.value.map(type => ({
-    title: type.name,
-    value: type.id
-  }))
-)
-
-const currencyOptions = computed(() => 
-  currencies.value.map(currency => ({
-    title: `${currency.code} - ${currency.name} (${currency.symbol})`,
-    value: currency.id
-  }))
-)
-
 // Methods
-const loadAccounts = async () => {
-  loading.value = true
-  try {
-    const data = await accountApi.list()
-    accounts.value = data || []
-  } catch (error) {
-    console.error('Failed to load accounts:', error)
-    accounts.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadAccountTypes = async () => {
-  try {
-    const data = await accountTypeApi.list()
-    accountTypes.value = data || []
-  } catch (error) {
-    console.error('Failed to load account types:', error)
-    accountTypes.value = []
-  }
-}
-
 const loadCurrencies = async () => {
+  loading.value = true
   try {
     const data = await currencyApi.list()
     currencies.value = data || []
   } catch (error) {
     console.error('Failed to load currencies:', error)
     currencies.value = []
+  } finally {
+    loading.value = false
   }
 }
 
 const openCreateDialog = () => {
-  editingAccount.value = null
+  editingCurrency.value = null
+  form.code = ''
   form.name = ''
-  form.accountTypeId = ''
-  form.currencyId = 'usd'
-  form.isSavings = false
-  form.openingBalance = 0
-  form.includeInNetworth = true
+  form.symbol = ''
   showDialog.value = true
 }
 
-const editAccount = (account: AccountDto) => {
-  editingAccount.value = account
-  form.name = account.name
-  form.accountTypeId = account.accountTypeId
-  form.currencyId = account.currencyId
-  form.isSavings = account.isSavings
-  form.openingBalance = account.openingBalance
-  form.includeInNetworth = account.includeInNetworth
+const editCurrency = (currency: CurrencyDto) => {
+  editingCurrency.value = currency
+  form.code = currency.code
+  form.name = currency.name
+  form.symbol = currency.symbol
   showDialog.value = true
 }
 
 const closeDialog = () => {
   showDialog.value = false
-  editingAccount.value = null
+  editingCurrency.value = null
 }
 
-const saveAccount = async () => {
+const saveCurrency = async () => {
   if (!formValid.value) return
   
   saving.value = true
   try {
-    if (editingAccount.value) {
-      const updateData: UpdateAccountDto = {
-        id: editingAccount.value.id,
+    if (editingCurrency.value) {
+      const updateData: UpdateCurrencyDto = {
+        id: editingCurrency.value.id,
         ...form
       }
-      await accountApi.update(editingAccount.value.id, updateData)
+      await currencyApi.update(editingCurrency.value.id, updateData)
     } else {
-      await accountApi.create(form)
+      await currencyApi.create(form)
     }
-    await loadAccounts()
+    await loadCurrencies()
     closeDialog()
   } catch (error) {
-    console.error('Failed to save account:', error)
+    console.error('Failed to save currency:', error)
   } finally {
     saving.value = false
   }
 }
 
-const deleteAccount = (account: AccountDto) => {
-  accountToDelete.value = account
+const deleteCurrency = (currency: CurrencyDto) => {
+  currencyToDelete.value = currency
   showDeleteDialog.value = true
 }
 
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
-  accountToDelete.value = null
+  currencyToDelete.value = null
 }
 
 const confirmDelete = async () => {
-  if (!accountToDelete.value) return
+  if (!currencyToDelete.value) return
   
   deleting.value = true
   try {
-    await accountApi.delete(accountToDelete.value.id)
-    await loadAccounts()
+    await currencyApi.delete(currencyToDelete.value.id)
+    await loadCurrencies()
     closeDeleteDialog()
   } catch (error) {
-    console.error('Failed to delete account:', error)
+    console.error('Failed to delete currency:', error)
   } finally {
     deleting.value = false
   }
 }
 
 // Helper methods
-const getAccountIcon = (account: AccountDto) => {
-  const accountType = accountTypes.value.find(t => t.id === account.accountTypeId)
-  if (accountType?.isCard) return 'mdi-credit-card'
-  if (account.isSavings) return 'mdi-piggy-bank'
-  return 'mdi-bank'
-}
-
-const getAccountColor = (account: AccountDto) => {
-  const accountType = accountTypes.value.find(t => t.id === account.accountTypeId)
-  if (accountType?.isCard) return 'primary'
-  if (account.isSavings) return 'success'
-  return 'info'
-}
-
-const getAccountTypeColor = (account: AccountDto) => {
-  const accountType = accountTypes.value.find(t => t.id === account.accountTypeId)
-  if (accountType?.isCard) return 'primary'
-  return 'info'
-}
-
-const getAccountTypeName = (accountTypeId: string) => {
-  const accountType = accountTypes.value.find(t => t.id === accountTypeId)
-  return accountType?.name || 'Unknown'
-}
-
-const getBalanceColor = (balance: number) => {
-  if (balance > 0) return 'text-success'
-  if (balance < 0) return 'text-error'
-  return 'text-medium-emphasis'
-}
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
-}
-
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
 // Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    loadAccounts(),
-    loadAccountTypes(),
-    loadCurrencies()
-  ])
+  await loadCurrencies()
 })
 </script>
 
 <style scoped>
-.accounts-page {
+.currencies-page {
   min-height: 100vh;
 }
 
-.account-card {
+.currency-card {
   transition: all 0.3s ease;
   border-radius: 12px;
 }
 
-.account-card:hover {
+.currency-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
 }
@@ -557,7 +443,7 @@ onMounted(async () => {
   margin-bottom: 24px;
 }
 
-.balance-section {
+.currency-info {
   background: rgba(var(--v-theme-surface-variant), 0.3);
   padding: 12px;
   border-radius: 8px;

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+  <class name="ExpenseTracker.Dtos.Models.Currency, ExpenseTracker.Dtos" table="currencies">
+    <id name="Id" column="id" type="Guid">
+      <generator class="assigned" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="Code" column="code" />
+    <property name="Symbol" column="symbol" />
+    <property name="Name" column="name" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+  </class>
+</hibernate-mapping>

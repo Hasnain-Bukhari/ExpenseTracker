@@ -2,8 +2,26 @@ using System;
 
 namespace ExpenseTracker.Dtos.Models
 {
-    public enum AccountType { Cash, Bank, CreditCard, Savings, Other }
-    public enum CategoryType { Expense, Income }
+    // AccountType is now an entity (supports CRUD) instead of enum
+    public enum CategoryType { Expense, Income, Investment }
+    
+    // AccountType entity (replaces enum)
+    public class AccountType
+    {
+        public virtual Guid Id { get; set; }
+        public virtual string Name { get; set; } = null!;
+        // optional flag to indicate card-like types (we won't store CVV)
+        public virtual bool IsCard { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
+
+        public AccountType() { }
+        public AccountType(Guid id, string name, bool isCard, DateTime createdAt, DateTime updatedAt)
+        {
+            Id = id; Name = name; IsCard = isCard; CreatedAt = createdAt; UpdatedAt = updatedAt;
+        }
+    }
+
     public enum TransactionType { Expense, Income, Transfer, Saving }
     public enum TransactionStatus { Pending, Cleared, Reconciled }
     public enum BudgetPeriod { Monthly, Weekly, Yearly, Custom }
@@ -19,7 +37,9 @@ namespace ExpenseTracker.Dtos.Models
         public virtual string NormalizedEmail { get; set; } = null!;
         public virtual string? PasswordHash { get; set; }
         public virtual string? FullName { get; set; }
-        public virtual string DefaultCurrency { get; set; } = null!;
+        // Default currency is now a FK to Currency entity
+        public virtual Guid? DefaultCurrencyId { get; set; }
+        public virtual Currency? DefaultCurrency { get; set; }
         public virtual string? Locale { get; set; }
         public virtual string? Timezone { get; set; }
         public virtual bool IsActive { get; set; }
@@ -33,14 +53,14 @@ namespace ExpenseTracker.Dtos.Models
 
         public User() { }
 
-        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, string defaultCurrency, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
+        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, Guid? defaultCurrencyId, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             Email = email;
             NormalizedEmail = normalizedEmail;
             PasswordHash = passwordHash;
             FullName = fullName;
-            DefaultCurrency = defaultCurrency;
+            DefaultCurrencyId = defaultCurrencyId;
             Locale = locale;
             Timezone = timezone;
             IsActive = isActive;
@@ -56,16 +76,18 @@ namespace ExpenseTracker.Dtos.Models
 
     public class Currency
     {
+        public virtual Guid Id { get; set; }
+        public virtual Guid? UserId { get; set; }
         public virtual string Code { get; set; } = null!;
         public virtual string? Symbol { get; set; }
         public virtual string? Name { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
 
         public Currency() { }
-        public Currency(string code, string? symbol, string? name)
+        public Currency(Guid id, Guid? userId, string code, string? symbol, string? name, DateTime createdAt, DateTime updatedAt)
         {
-            Code = code;
-            Symbol = symbol;
-            Name = name;
+            Id = id; UserId = userId; Code = code; Symbol = symbol; Name = name; CreatedAt = createdAt; UpdatedAt = updatedAt;
         }
     }
 
@@ -74,22 +96,26 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual string Name { get; set; } = null!;
-        public virtual AccountType Type { get; set; }
-        public virtual string Currency { get; set; } = null!;
+        // Foreign key properties for easier API usage
+        public virtual Guid AccountTypeId { get; set; }
+        public virtual Guid CurrencyId { get; set; }
+        // Navigation properties
+        public virtual AccountType? AccountType { get; set; }
+        public virtual Currency? Currency { get; set; }
         public virtual bool IsSavings { get; set; }
         public virtual decimal OpeningBalance { get; set; }
         public virtual bool IncludeInNetworth { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
-        public virtual DateTimeOffset UpdatedAt { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
 
         public Account() { }
-        public Account(Guid id, Guid userId, string name, AccountType type, string currency, bool isSavings, decimal openingBalance, bool includeInNetworth, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Account(Guid id, Guid userId, string name, Guid accountTypeId, Guid currencyId, bool isSavings, decimal openingBalance, bool includeInNetworth, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             Name = name;
-            Type = type;
-            Currency = currency;
+            AccountTypeId = accountTypeId;
+            CurrencyId = currencyId;
             IsSavings = isSavings;
             OpeningBalance = openingBalance;
             IncludeInNetworth = includeInNetworth;
@@ -158,7 +184,8 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid UserId { get; set; }
         public virtual string Name { get; set; } = null!;
         public virtual decimal TargetAmount { get; set; }
-        public virtual string Currency { get; set; } = null!;
+        public virtual Guid CurrencyId { get; set; }
+        public virtual Currency? Currency { get; set; }
         public virtual Guid? AccountId { get; set; }
         public virtual DateTime? Deadline { get; set; }
         public virtual string? Note { get; set; }
@@ -167,13 +194,13 @@ namespace ExpenseTracker.Dtos.Models
         public virtual DateTime UpdatedAt { get; set; }
 
         public Goal() { }
-        public Goal(Guid id, Guid userId, string name, decimal targetAmount, string currency, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTime createdAt, DateTime updatedAt)
+        public Goal(Guid id, Guid userId, string name, decimal targetAmount, Guid currencyId, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             Name = name;
             TargetAmount = targetAmount;
-            Currency = currency;
+            CurrencyId = currencyId;
             AccountId = accountId;
             Deadline = deadline;
             Note = note;
@@ -190,9 +217,11 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid AccountId { get; set; }
         public virtual TransactionType Type { get; set; }
         public virtual decimal Amount { get; set; }
-        public virtual string Currency { get; set; } = null!;
+        public virtual Guid CurrencyId { get; set; }
+        public virtual Currency? Currency { get; set; }
         public virtual decimal? OriginalAmount { get; set; }
-        public virtual string? OriginalCurrency { get; set; }
+        public virtual Guid? OriginalCurrencyId { get; set; }
+        public virtual Currency? OriginalCurrency { get; set; }
         public virtual DateTime Date { get; set; }
         public virtual DateTimeOffset? SettledAt { get; set; }
         public virtual Guid? CategoryId { get; set; }
@@ -203,16 +232,16 @@ namespace ExpenseTracker.Dtos.Models
         public virtual DateTimeOffset UpdatedAt { get; set; }
 
         public Transaction() { }
-        public Transaction(Guid id, Guid userId, Guid accountId, TransactionType type, decimal amount, string currency, decimal? originalAmount, string? originalCurrency, DateTime date, DateTimeOffset? settledAt, Guid? categoryId, Guid? goalId, string? notes, TransactionStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Transaction(Guid id, Guid userId, Guid accountId, TransactionType type, decimal amount, Guid currencyId, decimal? originalAmount, Guid? originalCurrencyId, DateTime date, DateTimeOffset? settledAt, Guid? categoryId, Guid? goalId, string? notes, TransactionStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
         {
             Id = id;
             UserId = userId;
             AccountId = accountId;
             Type = type;
             Amount = amount;
-            Currency = currency;
+            CurrencyId = currencyId;
             OriginalAmount = originalAmount;
-            OriginalCurrency = originalCurrency;
+            OriginalCurrencyId = originalCurrencyId;
             Date = date;
             SettledAt = settledAt;
             CategoryId = categoryId;

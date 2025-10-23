@@ -100,4 +100,112 @@ api.interceptors.response.use(
   }
 )
 
+// AccountType API functions
+export const accountTypeApi = {
+  async list() {
+    const response = await api.get('/account-types')
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/account-types/${id}`)
+    return response.data
+  },
+
+  async create(data: { name: string; isCard: boolean }) {
+    const response = await api.post('/account-types', data)
+    return response.data
+  },
+
+  async update(id: string, data: { name: string; isCard: boolean }) {
+    const response = await api.put(`/account-types/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/account-types/${id}`)
+    return response.data
+  }
+}
+
+// Currency API functions
+export const currencyApi = {
+  async list() {
+    const response = await api.get('/currencies')
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/currencies/${id}`)
+    return response.data
+  },
+
+  async create(data: { 
+    code: string
+    name: string
+    symbol: string
+  }) {
+    const response = await api.post('/currencies', data)
+    return response.data
+  },
+
+  async update(id: string, data: { 
+    id: string
+    code: string
+    name: string
+    symbol: string
+  }) {
+    const response = await api.put(`/currencies/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/currencies/${id}`)
+    return response.data
+  }
+}
+
+// Account API functions
+export const accountApi = {
+  async list() {
+    const response = await api.get('/accounts')
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/accounts/${id}`)
+    return response.data
+  },
+
+  async create(data: { 
+    name: string
+    accountTypeId: string
+    currencyId: string
+    isSavings: boolean
+    openingBalance: number
+    includeInNetworth: boolean
+  }) {
+    const response = await api.post('/accounts', data)
+    return response.data
+  },
+
+  async update(id: string, data: { 
+    id: string
+    name: string
+    accountTypeId: string
+    currencyId: string
+    isSavings: boolean
+    openingBalance: number
+    includeInNetworth: boolean
+  }) {
+    const response = await api.put(`/accounts/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/accounts/${id}`)
+    return response.data
+  }
+}
+
 export default api

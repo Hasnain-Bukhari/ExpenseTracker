@@ -56,6 +56,24 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('@/views/CategoriesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/account-types',
+      name: 'account-types',
+      component: () => import('@/views/AccountTypesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/currencies',
+      name: 'currencies',
+      component: () => import('@/views/CurrenciesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/budgets',
       name: 'budgets',
       component: () => import('@/views/BudgetsView.vue'),
