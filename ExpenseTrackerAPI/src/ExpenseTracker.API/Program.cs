@@ -91,6 +91,7 @@ cfg.DataBaseIntegration(db =>
 // load mappings from the repository assembly so embedded resources resolve correctly
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AuthMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.Entities.hbm.xml", typeof(NativeUserRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.CategoryMappings.hbm.xml", typeof(NativeCategoryRepository).Assembly);
 
 ISessionFactory? sessionFactory = null;
 try
@@ -111,6 +112,9 @@ catch (Exception ex)
 builder.Services.AddScoped<IUserRepository, NativeUserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, NativeRefreshTokenRepository>();
 builder.Services.AddScoped<IPasswordResetRepository, NativePasswordResetRepository>();
+// Register category repository/service
+builder.Services.AddScoped<ICategoryRepository, NativeCategoryRepository>();
+builder.Services.AddScoped<CategoryService>();
 
 // Register auth service
 builder.Services.AddScoped<IAuthService, AuthService>();

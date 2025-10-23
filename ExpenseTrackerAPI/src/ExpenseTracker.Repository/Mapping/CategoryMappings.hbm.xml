@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+  <class name="ExpenseTracker.Dtos.Models.Category, ExpenseTracker.Dtos" table="categories">
+    <id name="Id" column="id" type="Guid">
+      <generator class="assigned" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="Name" column="name" />
+    <!-- Map enum as string so DB textual values convert to CategoryType enum -->
+    <property name="Type" column="type" type="NHibernate.Type.EnumStringType`1[[ExpenseTracker.Dtos.Models.CategoryType, ExpenseTracker.Dtos]]" />
+    <property name="Description" column="description" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+    <bag name="SubCategories" inverse="true" cascade="all-delete-orphan" lazy="true">
+      <key column="category_id" />
+      <one-to-many class="ExpenseTracker.Dtos.Models.SubCategory, ExpenseTracker.Dtos" />
+    </bag>
+  </class>
+
+  <class name="ExpenseTracker.Dtos.Models.SubCategory, ExpenseTracker.Dtos" table="sub_categories">
+    <id name="Id" column="id" type="Guid">
+      <generator class="assigned" />
+    </id>
+    <!-- Keep CategoryId as a read-only property and map the many-to-one relation as the FK owner -->
+    <property name="CategoryId" column="category_id" insert="false" update="false" />
+    <many-to-one name="Category" class="ExpenseTracker.Dtos.Models.Category, ExpenseTracker.Dtos" column="category_id" />
+    <property name="Name" column="name" />
+    <property name="Description" column="description" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+  </class>
+</hibernate-mapping>

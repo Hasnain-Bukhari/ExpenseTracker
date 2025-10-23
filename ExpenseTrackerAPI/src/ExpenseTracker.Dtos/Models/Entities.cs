@@ -103,21 +103,52 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual string Name { get; set; } = null!;
+        public virtual string Description { get; set; } = null!;
         public virtual Guid? ParentId { get; set; }
         public virtual CategoryType Type { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
-        public virtual DateTimeOffset UpdatedAt { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
+
+        // Navigation property for NHibernate one-to-many mapping
+        public virtual System.Collections.Generic.IList<SubCategory> SubCategories { get; set; } = new System.Collections.Generic.List<SubCategory>();
 
         public Category() { }
-        public Category(Guid id, Guid userId, string name, Guid? parentId, CategoryType type, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Category(Guid id, Guid userId, string name, string description, Guid? parentId, CategoryType type, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             Name = name;
+            Description = description;
             ParentId = parentId;
             Type = type;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
+        }
+    }
+
+    public class SubCategory
+    {
+        public virtual Guid Id { get; set; }
+        public virtual Guid CategoryId { get; set; }
+        public virtual string Name { get; set; } = null!;
+        public virtual string? Description { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
+
+        // Back-reference for NHibernate many-to-one mapping
+        public virtual Category? Category { get; set; }
+
+        public SubCategory() { }
+
+        public SubCategory(Guid id, Guid categoryId, string name, string? description, DateTime createdAt, DateTime updatedAt)
+        {
+            Id = id;
+            CategoryId = categoryId;
+            Name = name;
+            Description = description;
+            CreatedAt = createdAt;
+            UpdatedAt = updatedAt;
+            Category = new Category() {Id = CategoryId};
         }
     }
 
@@ -132,11 +163,11 @@ namespace ExpenseTracker.Dtos.Models
         public virtual DateTime? Deadline { get; set; }
         public virtual string? Note { get; set; }
         public virtual bool Archived { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
-        public virtual DateTimeOffset UpdatedAt { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
 
         public Goal() { }
-        public Goal(Guid id, Guid userId, string name, decimal targetAmount, string currency, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Goal(Guid id, Guid userId, string name, decimal targetAmount, string currency, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
