@@ -165,6 +165,45 @@ export const currencyApi = {
   }
 }
 
+// CategoryType API functions
+export const categoryTypeApi = {
+  async list() {
+    const response = await api.get('/category-types')
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/category-types/${id}`)
+    return response.data
+  },
+
+  async create(data: { 
+    name: string
+    description?: string
+    color?: string
+    isActive: boolean
+  }) {
+    const response = await api.post('/category-types', data)
+    return response.data
+  },
+
+  async update(id: string, data: { 
+    id: string
+    name: string
+    description?: string
+    color?: string
+    isActive: boolean
+  }) {
+    const response = await api.put(`/category-types/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/category-types/${id}`)
+    return response.data
+  }
+}
+
 // Account API functions
 export const accountApi = {
   async list() {

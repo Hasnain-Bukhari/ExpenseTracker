@@ -27,14 +27,10 @@ namespace ExpenseTracker.Repository.Repositories
             return await s.GetAsync<Category>(id);
         }
 
-        public async Task<Category?> GetByNameAndUserAsync(Guid userId, string name, string type)
+        public async Task<Category?> GetByNameAndUserAsync(Guid userId, string name)
         {
             using var s = _sf.OpenSession();
-            if (!Enum.TryParse<CategoryType>(type, true, out var parsedType))
-            {
-                return null;
-            }
-            return await s.Query<Category>().FirstOrDefaultAsync(c => c.UserId == userId && c.Type == parsedType && c.Name.ToLower() == name.ToLower());
+            return await s.Query<Category>().FirstOrDefaultAsync(c => c.UserId == userId && c.Name.ToLower() == name.ToLower());
         }
 
         public async Task UpdateAsync(Category category)
@@ -57,7 +53,20 @@ namespace ExpenseTracker.Repository.Repositories
         public async Task<IList<Category>> ListByUserAsync(Guid userId)
         {
             using var s = _sf.OpenSession();
-            return await s.Query<Category>().Where(c => c.UserId == userId).ToListAsync();
+            var categories = await s.Query<Category>()
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+            
+            // Load navigation properties
+            foreach (var category in categories)
+            {
+                if (category.CategoryTypeId != Guid.Empty)
+                {
+                    category.CategoryType = await s.GetAsync<CategoryType>(category.CategoryTypeId);
+                }
+            }
+            
+            return categories;
         }
 
         public async Task CreateSubAsync(SubCategory subCategory)

@@ -61,24 +61,24 @@
                       <v-card-title class="d-flex align-center justify-space-between pb-2">
                         <div class="d-flex align-center">
                           <v-avatar 
-                            :color="cat.type === 'expense' ? 'error' : 'success'" 
+                            :color="cat.categoryType?.color || 'primary'" 
                             size="40"
                             class="mr-3"
                           >
                             <v-icon 
-                              :icon="cat.type === 'expense' ? 'mdi-trending-down' : 'mdi-trending-up'"
+                              icon="mdi-tag"
                               color="white"
                             ></v-icon>
                           </v-avatar>
                           <div>
                             <h3 class="text-h6 mb-0">{{ cat.name }}</h3>
                             <v-chip 
-                              :color="cat.type === 'expense' ? 'error' : 'success'"
+                              :color="cat.categoryType?.color || 'primary'"
                               size="x-small"
                               variant="tonal"
                               class="mt-1"
                             >
-                              {{ cat.type }}
+                              {{ cat.categoryType?.name }}
                             </v-chip>
                           </div>
                         </div>
@@ -204,10 +204,10 @@
             ></v-text-field>
             
             <v-select
-              v-model="categoryForm.type"
-              :items="typeOptions"
-              label="Type"
-              :rules="typeRules"
+              v-model="categoryForm.categoryTypeId"
+              :items="categoryTypeOptions"
+              label="Category Type"
+              :rules="categoryTypeRules"
               variant="outlined"
               rounded="xl"
               class="mb-3"
@@ -421,15 +421,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
 import api, { getAccessToken } from '@/lib/api'
+import { categoryTypeApi } from '@/lib/api'
 import type { CategoryDto, CreateCategoryDto, CreateSubCategoryDto, SubCategoryDto } from '@/types/category'
+import type { CategoryTypeDto } from '@/types/categoryType'
 
 // Reactive data
 const categories = ref<CategoryDto[]>([])
+const categoryTypes = ref<CategoryTypeDto[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
@@ -445,7 +448,7 @@ const editingSub = ref<SubCategoryDto | null>(null)
 const selectedCategory = ref<CategoryDto | null>(null)
 const itemToDelete = ref<CategoryDto | SubCategoryDto | null>(null)
 
-const categoryForm = reactive<CreateCategoryDto>({ name: '', type: 'expense', description: '' })
+const categoryForm = reactive<CreateCategoryDto>({ name: '', categoryTypeId: '', description: '' })
 const subForm = reactive<CreateSubCategoryDto>({ name: '', description: '' })
 const currentParentCat = ref<CategoryDto | null>(null)
 
@@ -455,19 +458,31 @@ const nameRules = [
   (v: string) => (v && v.length >= 2) || 'Name must be at least 2 characters'
 ]
 
-const typeRules = [
-  (v: string) => !!v || 'Type is required'
+const categoryTypeRules = [
+  (v: string) => !!v || 'Category type is required'
 ]
 
-// Options
-const typeOptions = [
-  { title: 'Expense', value: 'expense' },
-  { title: 'Income', value: 'income' }
-]
+// Computed properties
+const categoryTypeOptions = computed(() => 
+  categoryTypes.value.map(type => ({
+    title: type.name,
+    value: type.id
+  }))
+)
 
 const authHeader = () => {
   const t = getAccessToken()
   return t ? { Authorization: `Bearer ${t}` } : {}
+}
+
+const loadCategoryTypes = async () => {
+  try {
+    const data = await categoryTypeApi.list()
+    categoryTypes.value = data || []
+  } catch (error) {
+    console.error('Failed to load category types:', error)
+    categoryTypes.value = []
+  }
 }
 
 const load = async () => {
@@ -489,7 +504,7 @@ const load = async () => {
 const openCreateCategory = () => {
   editingCategory.value = null
   categoryForm.name = ''
-  categoryForm.type = 'expense'
+  categoryForm.categoryTypeId = categoryTypes.value[0]?.id || ''
   categoryForm.description = ''
   showCategoryDialog.value = true
 }
@@ -497,7 +512,7 @@ const openCreateCategory = () => {
 const editCategory = (cat: CategoryDto) => {
   editingCategory.value = cat
   categoryForm.name = cat.name
-  categoryForm.type = cat.type
+  categoryForm.categoryTypeId = cat.categoryTypeId
   categoryForm.description = cat.description || ''
   showCategoryDialog.value = true
 }
@@ -509,9 +524,18 @@ const saveCategory = async () => {
   try {
     const headers = authHeader()
     if (editingCategory.value) {
-      await api.put(`/categories/${editingCategory.value.id}`, { name: categoryForm.name, description: categoryForm.description }, { headers })
+      await api.put(`/categories/${editingCategory.value.id}`, { 
+        id: editingCategory.value.id,
+        name: categoryForm.name, 
+        categoryTypeId: categoryForm.categoryTypeId,
+        description: categoryForm.description 
+      }, { headers })
     } else {
-      await api.post('/categories', { name: categoryForm.name, type: categoryForm.type, description: categoryForm.description }, { headers })
+      await api.post('/categories', { 
+        name: categoryForm.name, 
+        categoryTypeId: categoryForm.categoryTypeId, 
+        description: categoryForm.description 
+      }, { headers })
     }
     await load()
     closeCategoryDialog()
@@ -601,7 +625,12 @@ const viewSubcategories = (cat: CategoryDto) => {
   showSubcategoriesDialog.value = true
 }
 
-onMounted(() => load())
+onMounted(async () => {
+  await Promise.all([
+    loadCategoryTypes(),
+    load()
+  ])
+})
 </script>
 
 <style scoped>

@@ -9,7 +9,7 @@ namespace ExpenseTracker.Repository.Repositories
     {
         Task CreateAsync(Category category);
         Task<Category?> GetByIdAsync(Guid id);
-        Task<Category?> GetByNameAndUserAsync(Guid userId, string name, string type);
+        Task<Category?> GetByNameAndUserAsync(Guid userId, string name);
         Task UpdateAsync(Category category);
         Task DeleteAsync(Guid id);
         Task<IList<Category>> ListByUserAsync(Guid userId);

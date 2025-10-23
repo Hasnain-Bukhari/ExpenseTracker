@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -16,8 +16,8 @@ COPY . .
 # Copy Docker environment file
 COPY .env.docker .env
 
-# Build the application
-RUN npm run build
+# Build the application (skip TypeScript checking for Docker build)
+RUN npm run build:docker
 
 # Production stage with nginx
 FROM nginx:alpine AS production

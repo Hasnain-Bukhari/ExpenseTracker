@@ -147,6 +147,40 @@
         </v-list-item>
 
         <v-list-item
+          :to="'/category-types'"
+          prepend-icon="mdi-tag-multiple-outline"
+          title="Category Types"
+          :active="isActive('/category-types')"
+          class="nav-item mb-1"
+          :class="{ active: isActive('/category-types') }"
+          rounded="xl"
+          aria-label="Category Types"
+          v-motion
+          :initial="{ opacity: 0, x: -20 }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 400, type: 'spring', stiffness: 200 } }"
+        >
+          <template v-slot:prepend>
+            <v-icon 
+              icon="mdi-tag-multiple-outline"
+              class="nav-item-icon"
+            />
+          </template>
+
+          <template v-slot:title>
+            <span class="nav-item-text" :class="{ collapsed: isCollapsed && !$vuetify.display.mobile }">
+              Category Types
+            </span>
+          </template>
+
+          <v-tooltip
+            v-if="isCollapsed"
+            activator="parent"
+            location="end"
+            :text="'Category Types'"
+          />
+        </v-list-item>
+
+        <v-list-item
           :to="'/account-types'"
           prepend-icon="mdi-bank"
           title="Account Types"
@@ -157,7 +191,7 @@
           aria-label="Account Types"
           v-motion
           :initial="{ opacity: 0, x: -20 }"
-          :enter="{ opacity: 1, x: 0, transition: { delay: 400, type: 'spring', stiffness: 200 } }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 450, type: 'spring', stiffness: 200 } }"
         >
           <template v-slot:prepend>
             <v-icon 
@@ -191,7 +225,7 @@
           aria-label="Currencies"
           v-motion
           :initial="{ opacity: 0, x: -20 }"
-          :enter="{ opacity: 1, x: 0, transition: { delay: 450, type: 'spring', stiffness: 200 } }"
+          :enter="{ opacity: 1, x: 0, transition: { delay: 500, type: 'spring', stiffness: 200 } }"
         >
           <template v-slot:prepend>
             <v-icon 
