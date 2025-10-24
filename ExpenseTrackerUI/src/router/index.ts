@@ -62,12 +62,6 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/category-types',
-      name: 'category-types',
-      component: () => import('@/views/CategoryTypesView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/transactions',
       name: 'transactions',
       component: () => import('@/views/TransactionsView.vue'),

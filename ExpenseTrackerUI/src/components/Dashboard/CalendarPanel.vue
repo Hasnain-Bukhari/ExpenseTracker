@@ -37,6 +37,7 @@
       
       <!-- Mini Calendar Grid -->
       <div class="mini-calendar">
+        <!-- Calendar Header -->
         <div class="calendar-header">
           <div class="d-flex align-center justify-space-between mb-4">
             <div>
@@ -98,7 +99,7 @@
                   v-for="(transaction, txIndex) in day.transactions.slice(0, 3)"
                   :key="txIndex"
                   class="transaction-dot"
-                  :style="{ backgroundColor: transaction.category?.categoryType?.color || '#1976d2' }"
+                  :style="{ backgroundColor: getCategoryTypeColor(transaction.category?.categoryType) }"
                 ></div>
                 <div v-if="day.transactionCount > 3" class="more-indicator">
                   +{{ day.transactionCount - 3 }}
@@ -142,6 +143,7 @@ import { useRouter } from 'vue-router'
 import { formatCurrency } from '@/utils/formatters'
 import { transactionService } from '@/services/apiService'
 import type { TransactionDto } from '@/types/transaction'
+import { CategoryType } from '@/types/category'
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -150,6 +152,11 @@ const transactions = ref<TransactionDto[]>([])
 
 // Calendar data
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// Helper functions
+const getCategoryTypeColor = (categoryType: CategoryType): string => {
+  return categoryType === CategoryType.Income ? '#4caf50' : '#f44336'
+}
 
 // Computed properties
 const currentMonthYear = computed(() => {
@@ -330,15 +337,20 @@ onMounted(() => {
 <style scoped>
 .mini-calendar {
   background: rgba(var(--v-theme-surface), 0.8);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 24px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(var(--v-theme-outline), 0.1);
-  box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.08);
+  box-shadow: 0 8px 32px rgba(var(--v-theme-primary), 0.12);
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-header {
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .nav-btn {
@@ -352,16 +364,18 @@ onMounted(() => {
 }
 
 .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 240px;
 }
 
 .weekday-headers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 6px;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 .weekday-header {
@@ -369,15 +383,22 @@ onMounted(() => {
   font-size: 11px;
   font-weight: 600;
   color: rgb(var(--v-theme-primary));
-  padding: 8px 4px;
-  background: rgba(var(--v-theme-primary), 0.05);
+  padding: 6px 4px;
+  background: rgba(var(--v-theme-primary), 0.08);
   border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 6px;
+  width: 100%;
 }
 
 .calendar-day {
@@ -388,81 +409,98 @@ onMounted(() => {
   justify-content: center;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   position: relative;
   min-height: 36px;
+  padding: 6px;
+  background: rgba(var(--v-theme-surface), 0.6);
   border: 1px solid transparent;
+  box-shadow: 0 1px 4px rgba(var(--v-theme-primary), 0.05);
 }
 
 .calendar-day:hover {
-  background: rgba(var(--v-theme-primary), 0.1);
-  border-color: rgba(var(--v-theme-primary), 0.2);
-  transform: scale(1.05);
+  background: rgba(var(--v-theme-primary), 0.15);
+  border-color: rgba(var(--v-theme-primary), 0.3);
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(var(--v-theme-primary), 0.2);
 }
 
 .calendar-day--other-month {
-  opacity: 0.3;
+  opacity: 0.4;
   background: rgba(var(--v-theme-surface), 0.3);
+  color: rgba(var(--v-theme-on-surface), 0.5);
 }
 
 .calendar-day--today {
-  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.2), rgba(var(--v-theme-primary), 0.1));
+  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.25), rgba(var(--v-theme-primary), 0.15));
   border-color: rgb(var(--v-theme-primary));
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.3);
+  font-weight: 800;
+  box-shadow: 0 4px 20px rgba(var(--v-theme-primary), 0.4);
+  color: rgb(var(--v-theme-primary));
 }
 
 .calendar-day--has-transactions {
-  background: rgba(var(--v-theme-primary), 0.08);
-  border-color: rgba(var(--v-theme-primary), 0.2);
+  background: rgba(var(--v-theme-primary), 0.12);
+  border-color: rgba(var(--v-theme-primary), 0.3);
+  box-shadow: 0 3px 12px rgba(var(--v-theme-primary), 0.15);
 }
 
 .day-number {
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   color: rgb(var(--v-theme-on-surface));
+  line-height: 1;
 }
 
 .transaction-indicator {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   flex-wrap: wrap;
   justify-content: center;
+  margin-top: 2px;
 }
 
 .transaction-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .more-indicator {
-  font-size: 8px;
+  font-size: 9px;
   color: rgb(var(--v-theme-on-surface-variant));
-  font-weight: 600;
-  padding: 1px 3px;
-  background: rgba(var(--v-theme-surface), 0.9);
-  border-radius: 4px;
+  font-weight: 700;
+  padding: 2px 4px;
+  background: rgba(var(--v-theme-surface), 0.95);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .calendar-stats {
-  border-top: 1px solid rgba(var(--v-theme-outline), 0.2);
-  padding-top: 20px;
-  margin-top: 20px;
+  border-top: 2px solid rgba(var(--v-theme-outline), 0.15);
+  padding-top: 24px;
+  margin-top: 24px;
+  background: rgba(var(--v-theme-primary), 0.03);
+  border-radius: 16px;
+  padding: 20px;
 }
 
 .stat-item {
-  padding: 12px 8px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: 16px 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: rgba(var(--v-theme-surface), 0.8);
+  border: 1px solid rgba(var(--v-theme-outline), 0.1);
 }
 
 .stat-item:hover {
-  background: rgba(var(--v-theme-primary), 0.05);
+  background: rgba(var(--v-theme-primary), 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(var(--v-theme-primary), 0.15);
 }
 
 .card-pattern {
@@ -509,5 +547,12 @@ onMounted(() => {
   100% {
     background-position: -200% 0;
   }
+}
+
+.dashboard-card {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 </style>

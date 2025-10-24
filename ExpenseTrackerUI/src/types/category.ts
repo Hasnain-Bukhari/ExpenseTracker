@@ -1,16 +1,20 @@
 // Category API types
-import type { CategoryTypeDto } from './categoryType'
+
+export enum CategoryType {
+  Income = 'Income',
+  Expense = 'Expense'
+}
 
 export interface CreateCategoryDto {
   name: string
-  categoryTypeId: string
+  categoryType: CategoryType
   description?: string | null
 }
 
 export interface UpdateCategoryDto {
   id: string
   name: string
-  categoryTypeId: string
+  categoryType: CategoryType
   description?: string | null
 }
 
@@ -37,11 +41,10 @@ export interface CategoryDto {
   id: string
   userId: string
   name: string
-  categoryTypeId: string
+  categoryType: CategoryType
   description?: string | null
   createdAt: string
   updatedAt: string
-  categoryType: CategoryTypeDto
   subCategories?: SubCategoryDto[] | null
 }
 

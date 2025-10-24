@@ -113,7 +113,23 @@
           :initial="{ opacity: 0, y: 20 }"
           :enter="{ opacity: 1, y: 0, transition: { delay: 500, duration: 500 } }"
         >
-          <CalendarPanel />
+          <v-row>
+            <v-col cols="12" md="6">
+              <CalendarPanel />
+            </v-col>
+            <v-col cols="12" md="6">
+              <!-- Placeholder for second panel -->
+              <v-card class="dashboard-card glass-card" style="height: 400px;">
+                <v-card-text class="d-flex align-center justify-center h-100">
+                  <div class="text-center">
+                    <v-icon icon="mdi-plus" size="48" color="primary" class="mb-4"></v-icon>
+                    <h3 class="text-h6 mb-2">Add Another Panel</h3>
+                    <p class="text-body-2 text-secondary">Space for additional dashboard content</p>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
         </div>
 
         <!-- Recent Transactions -->

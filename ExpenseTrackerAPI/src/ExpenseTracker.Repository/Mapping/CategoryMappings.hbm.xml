@@ -8,8 +8,7 @@
     <property name="Name" column="name" />
     <property name="Description" column="description" />
     <property name="ParentId" column="parent_id" />
-    <property name="CategoryTypeId" column="category_type_id" />
-    <many-to-one name="CategoryType" class="ExpenseTracker.Dtos.Models.CategoryType, ExpenseTracker.Dtos" column="category_type_id" insert="false" update="false" />
+    <property name="CategoryTypeString" column="category_type" type="String" />
     <property name="CreatedAt" column="created_at" />
     <property name="UpdatedAt" column="updated_at" />
     <bag name="SubCategories" inverse="true" cascade="all-delete-orphan" lazy="true">

@@ -1,5 +1,6 @@
 import type { AccountDto } from './account'
 import type { CategoryDto, SubCategoryDto } from './category'
+import { CategoryType } from './category'
 
 export interface CreateTransactionDto {
   accountId: string
@@ -44,6 +45,5 @@ export interface TransactionListDto {
   accountName: string
   categoryName: string
   subCategoryName?: string | null
-  categoryTypeName: string
-  categoryTypeColor?: string | null
+  categoryType: CategoryType
 }

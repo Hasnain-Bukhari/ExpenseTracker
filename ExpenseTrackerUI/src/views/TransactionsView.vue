@@ -117,8 +117,8 @@
                   @update:items-per-page="onPageSizeChange"
                 >
                   <template v-slot:item.amount="{ item }">
-                    <span :class="getAmountClass(item.category?.categoryType?.name)">
-                      {{ formatAmount(item.amount, item.category?.categoryType?.name) }}
+                    <span :class="getAmountClass(item.category?.categoryType)">
+                      {{ formatAmount(item.amount, item.category?.categoryType) }}
                     </span>
                   </template>
 
@@ -128,11 +128,11 @@
 
                   <template v-slot:item.categoryTypeName="{ item }">
                     <v-chip
-                      :color="item.category?.categoryType?.color || 'primary'"
+                      :color="getCategoryTypeColor(item.category?.categoryType)"
                       size="small"
                       variant="tonal"
                     >
-                      {{ item.category?.categoryType?.name }}
+                      {{ getCategoryTypeName(item.category?.categoryType) }}
                     </v-chip>
                   </template>
 
@@ -327,6 +327,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed, watch } from 'vue'
+import { useToast } from 'vue-toastification'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
@@ -334,8 +335,10 @@ import { transactionService, accountService, categoryService } from '@/services/
 import type { TransactionDto, CreateTransactionDto, PagedResult } from '@/types'
 import type { AccountDto } from '@/types/account'
 import type { CategoryDto } from '@/types/category'
+import { CategoryType } from '@/types/category'
 
 // Reactive data
+const toast = useToast()
 const transactions = ref<TransactionDto[]>([])
 const accounts = ref<AccountDto[]>([])
 const categories = ref<CategoryDto[]>([])
@@ -479,28 +482,16 @@ const editTransaction = (transaction: TransactionDto) => {
   const fullTransaction = transactions.value.find(t => t.id === transaction.id)
   if (!fullTransaction) return
 
-  editingTransaction.value = {
-    id: fullTransaction.id,
-    userId: '',
-    accountId: '',
-    categoryId: '',
-    subCategoryId: null,
-    description: fullTransaction.description,
-    amount: fullTransaction.amount,
-    transactionDate: fullTransaction.transactionDate,
-    createdAt: '',
-    updatedAt: '',
-    account: {} as AccountDto,
-    category: {} as CategoryDto,
-    subCategory: null
-  }
+  editingTransaction.value = fullTransaction
 
-  form.accountId = ''
-  form.categoryId = ''
-  form.subCategoryId = ''
+  // Populate the form with actual transaction data
+  form.accountId = fullTransaction.accountId
+  form.categoryId = fullTransaction.categoryId
+  form.subCategoryId = fullTransaction.subCategoryId || ''
   form.description = fullTransaction.description
   form.amount = fullTransaction.amount
-  form.transactionDate = fullTransaction.transactionDate
+  form.transactionDate = fullTransaction.transactionDate.split('T')[0] // Extract date part only
+  
   showDialog.value = true
 }
 
@@ -518,14 +509,17 @@ const saveTransaction = async () => {
         id: editingTransaction.value.id,
         ...form
       })
+      toast.success('Transaction updated successfully')
     } else {
       await transactionService.create(form)
+      toast.success('Transaction created successfully')
     }
     showDialog.value = false
     await loadTransactions()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to save transaction:', error)
-    // TODO: Show error notification
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to save transaction'
+    toast.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -542,11 +536,13 @@ const deleteTransaction = async () => {
   deleting.value = true
   try {
     await transactionService.delete(transactionToDelete.value.id)
+    toast.success('Transaction deleted successfully')
     showDeleteDialog.value = false
     await loadTransactions()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to delete transaction:', error)
-    // TODO: Show error notification
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to delete transaction'
+    toast.error(errorMessage)
   } finally {
     deleting.value = false
   }
@@ -573,13 +569,23 @@ const onCategoryChange = () => {
   form.subCategoryId = ''
 }
 
-const formatAmount = (amount: number, categoryType: string) => {
-  const sign = categoryType === 'Expense' ? '-' : '+'
+const getCategoryTypeColor = (categoryType: CategoryType | undefined): string => {
+  if (!categoryType) return 'primary'
+  return categoryType === CategoryType.Income ? 'success' : 'error'
+}
+
+const getCategoryTypeName = (categoryType: CategoryType | undefined): string => {
+  if (!categoryType) return 'Unknown'
+  return categoryType === CategoryType.Income ? 'Income' : 'Expense'
+}
+
+const formatAmount = (amount: number, categoryType: CategoryType | undefined) => {
+  const sign = categoryType === CategoryType.Expense ? '-' : '+'
   return `${sign}$${amount.toFixed(2)}`
 }
 
-const getAmountClass = (categoryType: string) => {
-  return categoryType === 'Expense' ? 'text-error' : 'text-success'
+const getAmountClass = (categoryType: CategoryType | undefined) => {
+  return categoryType === CategoryType.Expense ? 'text-error' : 'text-success'
 }
 
 const formatDate = (dateString: string) => {

@@ -8,7 +8,6 @@ using ExpenseTracker.Dtos.Accounts;
 using ExpenseTracker.Dtos.Categories;
 using ExpenseTracker.Dtos.AccountTypes;
 using ExpenseTracker.Dtos.Currencies;
-using ExpenseTracker.Dtos.CategoryTypes;
 using NHibernate;
 using NHibernate.Linq;
 
@@ -49,7 +48,6 @@ namespace ExpenseTracker.Repository.Repositories
                 .Fetch(t => t.Account)
                 .ThenFetch(a => a.Currency)
                 .Fetch(t => t.Category)
-                .ThenFetch(c => c.CategoryType)
                 .Fetch(t => t.SubCategory)
                 .FirstOrDefaultAsync();
         }
@@ -64,7 +62,6 @@ namespace ExpenseTracker.Repository.Repositories
                 .Fetch(t => t.Account)
                 .ThenFetch(a => a.Currency)
                 .Fetch(t => t.Category)
-                .ThenFetch(c => c.CategoryType)
                 .Fetch(t => t.SubCategory)
                 .FirstOrDefaultAsync();
 
@@ -104,19 +101,10 @@ namespace ExpenseTracker.Repository.Repositories
                 transaction.Category.Id,
                 transaction.Category.UserId,
                 transaction.Category.Name,
-                transaction.Category.CategoryTypeId,
+                transaction.Category.CategoryType,
                 transaction.Category.Description,
                 transaction.Category.CreatedAt,
                 transaction.Category.UpdatedAt,
-                new CategoryTypeDto(
-                    transaction.Category.CategoryType.Id,
-                    transaction.Category.CategoryType.Name,
-                    transaction.Category.CategoryType.Description,
-                    transaction.Category.CategoryType.Color,
-                    transaction.Category.CategoryType.IsActive,
-                    transaction.Category.CategoryType.CreatedAt,
-                    transaction.Category.CategoryType.UpdatedAt
-                ),
                 null
             );
 
@@ -200,10 +188,7 @@ namespace ExpenseTracker.Repository.Repositories
                 if (transaction.CategoryId != Guid.Empty)
                 {
                     transaction.Category = await s.GetAsync<Category>(transaction.CategoryId);
-                    if (transaction.Category != null && transaction.Category.CategoryTypeId != Guid.Empty)
-                    {
-                        transaction.Category.CategoryType = await s.GetAsync<CategoryType>(transaction.Category.CategoryTypeId);
-                    }
+                    // CategoryType is now an enum, no need to load navigation property
                 }
                 if (transaction.SubCategoryId != Guid.Empty)
                 {
@@ -223,7 +208,6 @@ namespace ExpenseTracker.Repository.Repositories
                 .Fetch(t => t.Account)
                 .ThenFetch(a => a.Currency)
                 .Fetch(t => t.Category)
-                .ThenFetch(c => c.CategoryType)
                 .Fetch(t => t.SubCategory)
                 .Where(t => t.UserId == userId);
 

@@ -10,34 +10,23 @@ namespace ExpenseTracker.Service.Services
     public class CategoryService
     {
         private readonly ICategoryRepository _repo;
-        private readonly ICategoryTypeRepository _categoryTypeRepo;
 
-        public CategoryService(ICategoryRepository repo, ICategoryTypeRepository categoryTypeRepo) 
+        public CategoryService(ICategoryRepository repo) 
         { 
             _repo = repo;
-            _categoryTypeRepo = categoryTypeRepo;
         }
 
         public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto dto, Guid userId)
         {
-            // Validate category type exists
-            var categoryType = await _categoryTypeRepo.GetByIdAsync(dto.CategoryTypeId);
-            if (categoryType == null) throw new InvalidOperationException("Category type not found");
-
             // check duplicate
             var existing = await _repo.GetByNameAndUserAsync(userId, dto.Name);
             if (existing != null) throw new InvalidOperationException("Category already exists");
 
             var now = DateTime.UtcNow;
-            var category = new Category(Guid.NewGuid(), userId, dto.Name, dto.Description ?? "", null, dto.CategoryTypeId, now, now);
+            var category = new Category(Guid.NewGuid(), userId, dto.Name, dto.Description ?? "", null, dto.CategoryType, now, now);
             await _repo.CreateAsync(category);
             
-            var categoryTypeDto = new ExpenseTracker.Dtos.CategoryTypes.CategoryTypeDto(
-                categoryType.Id, categoryType.Name, categoryType.Description, 
-                categoryType.Color, categoryType.IsActive, categoryType.CreatedAt, categoryType.UpdatedAt
-            );
-            
-            return new CategoryDto(category.Id, category.UserId, category.Name, category.CategoryTypeId, category.Description, category.CreatedAt, category.UpdatedAt, categoryTypeDto, null);
+            return new CategoryDto(category.Id, category.UserId, category.Name, category.CategoryType, category.Description, category.CreatedAt, category.UpdatedAt, null);
         }
 
         public async Task<IList<CategoryDto>> ListByUserAsync(Guid userId)
@@ -53,12 +42,7 @@ namespace ExpenseTracker.Service.Services
                     subDtos.Add(new SubCategoryDto(s.Id, s.CategoryId, s.Name, s.Description, s.CreatedAt, s.UpdatedAt));
                 }
                 
-                var categoryTypeDto = new ExpenseTracker.Dtos.CategoryTypes.CategoryTypeDto(
-                    c.CategoryType!.Id, c.CategoryType.Name, c.CategoryType.Description, 
-                    c.CategoryType.Color, c.CategoryType.IsActive, c.CategoryType.CreatedAt, c.CategoryType.UpdatedAt
-                );
-                
-                list.Add(new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryTypeId, c.Description, c.CreatedAt, c.UpdatedAt, categoryTypeDto, subDtos));
+                list.Add(new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryType, c.Description, c.CreatedAt, c.UpdatedAt, subDtos));
             }
             return list;
         }
@@ -77,12 +61,7 @@ namespace ExpenseTracker.Service.Services
                 foreach (var s in sItems) subs.Add(new SubCategoryDto(s.Id, s.CategoryId, s.Name, s.Description, s.CreatedAt, s.UpdatedAt));
             }
             
-            var categoryTypeDto = new ExpenseTracker.Dtos.CategoryTypes.CategoryTypeDto(
-                c.CategoryType!.Id, c.CategoryType.Name, c.CategoryType.Description, 
-                c.CategoryType.Color, c.CategoryType.IsActive, c.CategoryType.CreatedAt, c.CategoryType.UpdatedAt
-            );
-            
-            return new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryTypeId, c.Description, c.CreatedAt, c.UpdatedAt, categoryTypeDto, subs);
+            return new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryType, c.Description, c.CreatedAt, c.UpdatedAt, subs);
         }
 
         public async Task<CategoryDto> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto, Guid userId)
@@ -91,26 +70,17 @@ namespace ExpenseTracker.Service.Services
             if (c == null) throw new KeyNotFoundException("Category not found");
             if (c.UserId != userId) throw new UnauthorizedAccessException("Not owner of category");
 
-            // Validate category type exists
-            var categoryType = await _categoryTypeRepo.GetByIdAsync(dto.CategoryTypeId);
-            if (categoryType == null) throw new InvalidOperationException("Category type not found");
-
             // check duplicate name
             var dup = await _repo.GetByNameAndUserAsync(userId, dto.Name);
             if (dup != null && dup.Id != id) throw new InvalidOperationException("Category name already in use");
 
             c.Name = dto.Name;
-            c.CategoryTypeId = dto.CategoryTypeId;
+            c.CategoryType = dto.CategoryType;
             c.Description = dto.Description ?? "";
             c.UpdatedAt = DateTime.UtcNow;
             await _repo.UpdateAsync(c);
             
-            var categoryTypeDto = new ExpenseTracker.Dtos.CategoryTypes.CategoryTypeDto(
-                categoryType.Id, categoryType.Name, categoryType.Description, 
-                categoryType.Color, categoryType.IsActive, categoryType.CreatedAt, categoryType.UpdatedAt
-            );
-            
-            return new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryTypeId, c.Description, c.CreatedAt, c.UpdatedAt, categoryTypeDto, null);
+            return new CategoryDto(c.Id, c.UserId, c.Name, c.CategoryType, c.Description, c.CreatedAt, c.UpdatedAt, null);
         }
 
         public async Task DeleteCategoryAsync(Guid id, Guid userId)

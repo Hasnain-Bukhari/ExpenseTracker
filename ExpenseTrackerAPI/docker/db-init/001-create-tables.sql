@@ -1,6 +1,28 @@
 -- Basic table creation script for ExpenseTracker
 -- This script creates all the necessary tables
 
+-- Create users table first (referenced by other tables)
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    normalized_email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255),
+    full_name VARCHAR(255) NOT NULL,
+    default_currency_id UUID,
+    locale VARCHAR(10) DEFAULT 'en-US',
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    is_email_verified BOOLEAN NOT NULL DEFAULT false,
+    phone VARCHAR(20),
+    profile_image TEXT,
+    default_account_id UUID,
+    provider VARCHAR(50) NOT NULL DEFAULT 'Local',
+    provider_id VARCHAR(255),
+    last_login_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create currencies table
 CREATE TABLE IF NOT EXISTS currencies (
     id UUID PRIMARY KEY,
@@ -47,13 +69,12 @@ CREATE TABLE IF NOT EXISTS categories (
     user_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    category_type_id UUID NOT NULL,
+    category_type VARCHAR(50) NOT NULL CHECK (category_type IN ('Income', 'Expense')),
     parent_id UUID,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_categories_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_categories_category_type_id FOREIGN KEY (category_type_id) REFERENCES category_types(id),
     CONSTRAINT fk_categories_parent_id FOREIGN KEY (parent_id) REFERENCES categories(id)
 );
 

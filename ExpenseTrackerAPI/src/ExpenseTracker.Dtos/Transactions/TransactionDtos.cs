@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ExpenseTracker.Dtos.Accounts;
 using ExpenseTracker.Dtos.Categories;
 using ExpenseTracker.Dtos.Common;
+using ExpenseTracker.Dtos.Models;
 
 namespace ExpenseTracker.Dtos.Transactions
 {
@@ -49,7 +50,6 @@ namespace ExpenseTracker.Dtos.Transactions
         string AccountName,
         string CategoryName,
         string? SubCategoryName,
-        string CategoryTypeName,
-        string CategoryTypeColor
+        CategoryType CategoryType
     );
 }

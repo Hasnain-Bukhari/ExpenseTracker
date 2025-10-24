@@ -21,6 +21,5 @@ namespace ExpenseTracker.Repository.Repositories
         Task UpdateSubAsync(SubCategory subCategory);
         Task DeleteSubAsync(Guid id);
         Task<IList<SubCategory>> ListSubsByCategoryAsync(Guid categoryId);
-        Task<CategoryType?> GetCategoryTypeByIdAsync(Guid id);
     }
 }

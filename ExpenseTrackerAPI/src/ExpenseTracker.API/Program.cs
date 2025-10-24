@@ -96,7 +96,6 @@ cfg.DataBaseIntegration(db =>
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AuthMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.Entities.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.CategoryMappings.hbm.xml", typeof(NativeCategoryRepository).Assembly);
-cfg.AddResource("ExpenseTracker.Repository.Mapping.CategoryTypeMappings.hbm.xml", typeof(NativeCategoryTypeRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.CurrencyMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountTypeMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
@@ -123,9 +122,7 @@ builder.Services.AddScoped<IRefreshTokenRepository, NativeRefreshTokenRepository
 builder.Services.AddScoped<IPasswordResetRepository, NativePasswordResetRepository>();
 // Register category repository/service
 builder.Services.AddScoped<ICategoryRepository, NativeCategoryRepository>();
-builder.Services.AddScoped<ICategoryTypeRepository, NativeCategoryTypeRepository>();
 builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<CategoryTypeService>();
 
 // Currency & AccountType repositories
 builder.Services.AddScoped<ICurrencyRepository, NativeCurrencyRepository>();

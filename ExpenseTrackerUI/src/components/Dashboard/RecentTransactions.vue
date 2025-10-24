@@ -77,7 +77,6 @@
               <th class="text-left font-weight-semibold d-none d-lg-table-cell">Account</th>
               <th class="text-right font-weight-semibold">Amount</th>
               <th class="text-center font-weight-semibold d-none d-md-table-cell">Status</th>
-              <th class="text-center font-weight-semibold d-none d-sm-table-cell">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -102,35 +101,35 @@
                 <div class="d-flex align-center">
                   <v-avatar
                     :size="$vuetify.display.mobile ? 32 : 36"
-                    :color="getCategoryColor(transaction.category)"
+                    :color="getCategoryColor(transaction)"
                     variant="tonal"
                     class="mr-3"
                   >
                     <v-icon 
-                      :icon="getCategoryIcon(transaction.category)"
+                      :icon="getCategoryIcon(transaction)"
                       :size="$vuetify.display.mobile ? 16 : 18"
                     />
                   </v-avatar>
                   <div class="transaction-details">
                     <p class="text-body-2 text-sm-body-1 font-weight-medium mb-0 text-truncate">
-                      {{ transaction.description }}
+                      {{ transaction.description || 'No description' }}
                     </p>
                     <div class="transaction-meta d-flex flex-column flex-sm-row align-start align-sm-center">
                       <span class="text-caption text-secondary">
-                        {{ formatDateShort(transaction.date) }}
+                        {{ formatDateShort(transaction.transactionDate) }}
                       </span>
                       <!-- Show category and account on mobile -->
                       <div class="d-flex d-md-none align-center mt-1 mt-sm-0 ml-sm-2">
                         <v-chip
                           size="x-small"
                           variant="tonal"
-                          :color="getCategoryColor(transaction.category)"
+                          :color="getCategoryColor(transaction)"
                           class="mr-2"
                         >
-                          {{ transaction.category }}
+                          {{ transaction.category?.name || 'Unknown' }}
                         </v-chip>
                         <span class="text-xs text-secondary d-lg-none">
-                          {{ transaction.account }}
+                          {{ transaction.account?.name || 'Unknown' }}
                         </span>
                       </div>
                     </div>
@@ -143,10 +142,10 @@
                 <v-chip
                   size="small"
                   variant="tonal"
-                  :color="getCategoryColor(transaction.category)"
+                  :color="getCategoryColor(transaction)"
                   class="category-chip"
                 >
-                  {{ transaction.category }}
+                  {{ transaction.category?.name || 'Unknown' }}
                 </v-chip>
               </td>
               
@@ -158,7 +157,7 @@
                     size="16"
                     class="mr-2 text-secondary"
                   />
-                  <span class="text-body-2">{{ transaction.account }}</span>
+                  <span class="text-body-2">{{ transaction.account?.name || 'Unknown' }}</span>
                 </div>
               </td>
               
@@ -168,10 +167,10 @@
                   <span 
                     :class="[
                       'amount text-body-1 font-weight-bold text-currency',
-                      getAmountClass(transaction.amount)
+                      getAmountClass(transaction)
                     ]"
                   >
-                    {{ getAmountPrefix(transaction.amount) }}{{ formatCurrency(Math.abs(transaction.amount)) }}
+                    {{ getAmountPrefix(transaction) }}{{ formatCurrency(transaction.amount) }}
                   </span>
                 </div>
               </td>
@@ -180,40 +179,12 @@
               <td class="text-center d-none d-md-table-cell">
                 <v-chip
                   size="small"
-                  :color="getStatusColor(transaction.status)"
-                  variant="dot"
+                  :color="getStatusColor()"
+                  variant="tonal"
                   class="status-chip"
                 >
-                  {{ transaction.status }}
+                  Completed
                 </v-chip>
-              </td>
-              
-              <!-- Actions -->
-              <td class="text-center d-none d-sm-table-cell">
-                <v-menu offset-y>
-                  <template v-slot:activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      icon
-                      size="small"
-                      variant="text"
-                      class="action-btn"
-                    >
-                      <v-icon size="16">mdi-dots-vertical</v-icon>
-                    </v-btn>
-                  </template>
-                  <v-list density="compact">
-                    <v-list-item @click="viewTransaction(transaction.id)">
-                      <v-list-item-title>View Details</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="editTransaction(transaction.id)">
-                      <v-list-item-title>Edit</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="duplicateTransaction(transaction.id)">
-                      <v-list-item-title>Duplicate</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
               </td>
             </tr>
           </tbody>
@@ -248,47 +219,47 @@
               <v-card-text class="pa-3 pa-sm-4">
                 <div class="d-flex align-center justify-space-between mb-3">
                   <v-avatar
-                    :color="getCategoryColor(transaction.category)"
+                    :color="getCategoryColor(transaction)"
                     variant="tonal"
                     :size="$vuetify.display.mobile ? 36 : 40"
                   >
                     <v-icon 
-                      :icon="getCategoryIcon(transaction.category)" 
+                      :icon="getCategoryIcon(transaction)" 
                       :size="$vuetify.display.mobile ? 18 : 20" 
                     />
                   </v-avatar>
                   
                   <v-chip
-                    :color="getStatusColor(transaction.status)"
+                    :color="getStatusColor()"
                     :size="$vuetify.display.mobile ? 'x-small' : 'small'"
-                    variant="dot"
+                    variant="tonal"
                   >
-                    {{ transaction.status }}
+                    Completed
                   </v-chip>
                 </div>
                 
                 <h4 class="text-subtitle-2 text-sm-subtitle-1 font-weight-semibold mb-1 text-truncate">
-                  {{ transaction.description }}
+                  {{ transaction.description || 'No description' }}
                 </h4>
                 
                 <p class="text-caption text-sm-body-2 text-secondary mb-2">
-                  <span class="category-text">{{ transaction.category }}</span>
+                  <span class="category-text">{{ transaction.category?.name || 'Unknown' }}</span>
                   <span class="d-none d-sm-inline"> • </span>
-                  <span class="d-block d-sm-inline text-xs">{{ formatDateShort(transaction.date) }}</span>
+                  <span class="d-block d-sm-inline text-xs">{{ formatDateShort(transaction.transactionDate) }}</span>
                 </p>
                 
                 <div class="d-flex align-center justify-space-between flex-wrap">
                   <span class="text-caption text-sm-body-2 text-secondary mb-1 mb-sm-0">
-                    {{ transaction.account }}
+                    {{ transaction.account?.name || 'Unknown' }}
                   </span>
                   
                   <span 
                     :class="[
                       'text-subtitle-1 text-sm-h6 font-weight-bold text-currency',
-                      getAmountClass(transaction.amount)
+                      getAmountClass(transaction)
                     ]"
                   >
-                    {{ getAmountPrefix(transaction.amount) }}{{ formatCurrency(Math.abs(transaction.amount)) }}
+                    {{ getAmountPrefix(transaction) }}{{ formatCurrency(transaction.amount) }}
                   </span>
                 </div>
               </v-card-text>
@@ -314,21 +285,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
-import { useAppStore } from '@/stores'
+import { useToast } from 'vue-toastification'
 import { formatCurrency, formatDateShort } from '@/utils/formatters'
+import { transactionService } from '@/services/apiService'
+import type { TransactionDto } from '@/types/transaction'
+import { CategoryType } from '@/types/category'
 
 const router = useRouter()
-const store = useAppStore()
+const toast = useToast()
 const { mobile } = useDisplay()
 
 // Reactive state
 const viewMode = ref<'list' | 'card'>('list')
-const displayLimit = ref(8)
+const displayLimit = ref(10)
 const isLoading = ref(false)
 const isLoadingMore = ref(false)
+const transactions = ref<TransactionDto[]>([])
+const hasMoreData = ref(false)
 
 // Auto-switch to card view on mobile
 watch(mobile, (isMobile) => {
@@ -339,66 +315,68 @@ watch(mobile, (isMobile) => {
 
 // Computed properties
 const recentTransactions = computed(() => 
-  store.recentTransactions.slice(0, displayLimit.value)
+  transactions.value.slice(0, displayLimit.value)
 )
 
 const hasMore = computed(() => 
-  store.recentTransactions.length > displayLimit.value
+  hasMoreData.value && transactions.value.length > displayLimit.value
 )
 
+// Data loading
+const loadRecentTransactions = async () => {
+  isLoading.value = true
+  try {
+    const response = await transactionService.list({ 
+      page: 1, 
+      pageSize: 20 // Load more than display limit to enable "load more"
+    })
+    
+    // Handle both direct array and paged result
+    if (Array.isArray(response)) {
+      transactions.value = response
+      hasMoreData.value = response.length >= 20
+    } else if (response && response.items) {
+      transactions.value = response.items
+      hasMoreData.value = response.total > response.items.length
+    } else {
+      transactions.value = []
+      hasMoreData.value = false
+    }
+  } catch (error: any) {
+    console.error('Failed to load recent transactions:', error)
+    toast.error('Failed to load recent transactions')
+    transactions.value = []
+    hasMoreData.value = false
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Styling helpers
-const getAmountClass = (amount: number): string => {
-  return amount >= 0 ? 'text-positive' : 'text-negative'
+const getAmountClass = (transaction: TransactionDto): string => {
+  return transaction.category?.categoryType === CategoryType.Income ? 'text-success' : 'text-error'
 }
 
-const getAmountPrefix = (amount: number): string => {
-  return amount >= 0 ? '+' : '-'
+const getAmountPrefix = (transaction: TransactionDto): string => {
+  return transaction.category?.categoryType === CategoryType.Income ? '+' : '-'
 }
 
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'completed': return 'success'
-    case 'pending': return 'warning'
-    case 'cancelled': return 'error'
-    default: return 'primary'
-  }
+const getStatusColor = (): string => {
+  return 'success' // All transactions are considered completed
 }
 
-const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    'Groceries': 'green',
-    'Dining': 'orange',
-    'Transportation': 'blue',
-    'Entertainment': 'purple',
-    'Shopping': 'pink',
-    'Utilities': 'teal',
-    'Salary': 'success',
-    'Transfer': 'info',
-    'Gas': 'cyan',
-    'Electric': 'amber',
-  }
-  return colors[category] || 'primary'
+const getCategoryColor = (transaction: TransactionDto): string => {
+  return transaction.category?.categoryType === CategoryType.Income ? 'success' : 'error'
 }
 
-const getCategoryIcon = (category: string): string => {
-  const icons: Record<string, string> = {
-    'Groceries': 'mdi-cart-outline',
-    'Dining': 'mdi-food-fork-drink',
-    'Transportation': 'mdi-car-outline',
-    'Entertainment': 'mdi-movie-outline',
-    'Shopping': 'mdi-shopping-outline',
-    'Utilities': 'mdi-lightning-bolt-outline',
-    'Salary': 'mdi-cash-multiple',
-    'Transfer': 'mdi-bank-transfer',
-    'Gas': 'mdi-gas-station',
-    'Electric': 'mdi-flash-outline',
-  }
-  return icons[category] || 'mdi-help-circle-outline'
+const getCategoryIcon = (transaction: TransactionDto): string => {
+  return transaction.category?.categoryType === CategoryType.Income ? 'mdi-trending-up' : 'mdi-trending-down'
 }
 
-const getAccountIcon = (account: string): string => {
-  if (account.toLowerCase().includes('credit')) return 'mdi-credit-card-outline'
-  if (account.toLowerCase().includes('savings')) return 'mdi-piggy-bank-outline'
+const getAccountIcon = (account: any): string => {
+  if (!account) return 'mdi-bank-outline'
+  if (account.name?.toLowerCase().includes('credit')) return 'mdi-credit-card-outline'
+  if (account.name?.toLowerCase().includes('savings')) return 'mdi-piggy-bank-outline'
   return 'mdi-bank-outline'
 }
 
@@ -407,26 +385,22 @@ const viewAllTransactions = () => {
   router.push('/transactions')
 }
 
-const viewTransaction = (id: string) => {
-  router.push(`/transactions/${id}`)
-}
-
-const editTransaction = (id: string) => {
-  router.push(`/transactions/${id}/edit`)
-}
-
-const duplicateTransaction = (id: string) => {
-  // TODO: Implement duplicate functionality
-  console.log('Duplicating transaction:', id)
-}
-
 const loadMore = async () => {
   isLoadingMore.value = true
   
-  // Simulate loading delay
-  setTimeout(() => {
+  try {
+    // Increase display limit to show more transactions
     displayLimit.value += 5
+  } catch (error) {
+    console.error('Failed to load more transactions:', error)
+    toast.error('Failed to load more transactions')
+  } finally {
     isLoadingMore.value = false
-  }, 500)
+  }
 }
+
+// Lifecycle
+onMounted(() => {
+  loadRecentTransactions()
+})
 </script>

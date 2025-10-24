@@ -61,7 +61,7 @@
                       <v-card-title class="d-flex align-center justify-space-between pb-2">
                         <div class="d-flex align-center">
                           <v-avatar 
-                            :color="cat.categoryType?.color || 'primary'" 
+                            :color="getCategoryTypeColor(cat.categoryType)" 
                             size="40"
                             class="mr-3"
                           >
@@ -73,12 +73,12 @@
                           <div>
                             <h3 class="text-h6 mb-0">{{ cat.name }}</h3>
                             <v-chip 
-                              :color="cat.categoryType?.color || 'primary'"
+                              :color="getCategoryTypeColor(cat.categoryType)"
                               size="x-small"
                               variant="tonal"
                               class="mt-1"
                             >
-                              {{ cat.categoryType?.name }}
+                              {{ getCategoryTypeName(cat.categoryType) }}
                             </v-chip>
                           </div>
                         </div>
@@ -204,7 +204,7 @@
             ></v-text-field>
             
             <v-select
-              v-model="categoryForm.categoryTypeId"
+              v-model="categoryForm.categoryType"
               :items="categoryTypeOptions"
               label="Category Type"
               :rules="categoryTypeRules"
@@ -422,17 +422,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { useToast } from 'vue-toastification'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
 import api, { getAccessToken } from '@/lib/api'
-import { categoryTypeService } from '@/services/apiService'
 import type { CategoryDto, CreateCategoryDto, CreateSubCategoryDto, SubCategoryDto } from '@/types/category'
-import type { CategoryTypeDto } from '@/types/categoryType'
+import { CategoryType } from '@/types/category'
 
 // Reactive data
+const toast = useToast()
 const categories = ref<CategoryDto[]>([])
-const categoryTypes = ref<CategoryTypeDto[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
@@ -448,7 +448,7 @@ const editingSub = ref<SubCategoryDto | null>(null)
 const selectedCategory = ref<CategoryDto | null>(null)
 const itemToDelete = ref<CategoryDto | SubCategoryDto | null>(null)
 
-const categoryForm = reactive<CreateCategoryDto>({ name: '', categoryTypeId: '', description: '' })
+const categoryForm = reactive<CreateCategoryDto>({ name: '', categoryType: CategoryType.Expense, description: '' })
 const subForm = reactive<CreateSubCategoryDto>({ name: '', description: '' })
 const currentParentCat = ref<CategoryDto | null>(null)
 
@@ -459,30 +459,27 @@ const nameRules = [
 ]
 
 const categoryTypeRules = [
-  (v: string) => !!v || 'Category type is required'
+  (v: CategoryType) => !!v || 'Category type is required'
 ]
 
 // Computed properties
-const categoryTypeOptions = computed(() => 
-  categoryTypes.value.map(type => ({
-    title: type.name,
-    value: type.id
-  }))
-)
+const categoryTypeOptions = computed(() => [
+  { title: 'Income', value: CategoryType.Income },
+  { title: 'Expense', value: CategoryType.Expense }
+])
+
+// Helper functions
+const getCategoryTypeColor = (categoryType: CategoryType): string => {
+  return categoryType === CategoryType.Income ? 'success' : 'error'
+}
+
+const getCategoryTypeName = (categoryType: CategoryType): string => {
+  return categoryType === CategoryType.Income ? 'Income' : 'Expense'
+}
 
 const authHeader = () => {
   const t = getAccessToken()
   return t ? { Authorization: `Bearer ${t}` } : {}
-}
-
-const loadCategoryTypes = async () => {
-  try {
-    const data = await categoryTypeService.list()
-    categoryTypes.value = data || []
-  } catch (error) {
-    console.error('Failed to load category types:', error)
-    categoryTypes.value = []
-  }
 }
 
 const load = async () => {
@@ -504,7 +501,7 @@ const load = async () => {
 const openCreateCategory = () => {
   editingCategory.value = null
   categoryForm.name = ''
-  categoryForm.categoryTypeId = categoryTypes.value[0]?.id || ''
+  categoryForm.categoryType = CategoryType.Expense
   categoryForm.description = ''
   showCategoryDialog.value = true
 }
@@ -512,7 +509,7 @@ const openCreateCategory = () => {
 const editCategory = (cat: CategoryDto) => {
   editingCategory.value = cat
   categoryForm.name = cat.name
-  categoryForm.categoryTypeId = cat.categoryTypeId
+  categoryForm.categoryType = cat.categoryType
   categoryForm.description = cat.description || ''
   showCategoryDialog.value = true
 }
@@ -527,13 +524,13 @@ const saveCategory = async () => {
       await api.put(`/categories/${editingCategory.value.id}`, { 
         id: editingCategory.value.id,
         name: categoryForm.name, 
-        categoryTypeId: categoryForm.categoryTypeId,
+        categoryType: categoryForm.categoryType,
         description: categoryForm.description 
       }, { headers })
     } else {
       await api.post('/categories', { 
         name: categoryForm.name, 
-        categoryTypeId: categoryForm.categoryTypeId, 
+        categoryType: categoryForm.categoryType, 
         description: categoryForm.description 
       }, { headers })
     }
@@ -604,17 +601,29 @@ const deleteItem = async () => {
   deleting.value = true
   try {
     const headers = authHeader()
-    if ('type' in itemToDelete.value) {
+    if ('categoryType' in itemToDelete.value) {
       // It's a category
       await api.delete(`/categories/${itemToDelete.value.id}`, { headers })
+      toast.success('Category deleted successfully')
     } else {
       // It's a subcategory
       await api.delete(`/subcategories/${itemToDelete.value.id}`, { headers })
+      toast.success('Subcategory deleted successfully')
     }
     await load()
     showDeleteDialog.value = false
-  } catch (e) {
-    console.error('Failed to delete item', e)
+  } catch (error: any) {
+    console.error('Failed to delete item', error)
+    
+    // Check if it's a foreign key constraint error
+    if (error.response?.status === 400 || error.response?.status === 409) {
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Cannot delete this item because it is being used by transactions'
+      toast.error(errorMessage)
+    } else if (error.response?.status === 404) {
+      toast.error('Item not found')
+    } else {
+      toast.error('Failed to delete item. Please try again.')
+    }
   } finally {
     deleting.value = false
   }
@@ -626,10 +635,7 @@ const viewSubcategories = (cat: CategoryDto) => {
 }
 
 onMounted(async () => {
-  await Promise.all([
-    loadCategoryTypes(),
-    load()
-  ])
+  await load()
 })
 </script>
 

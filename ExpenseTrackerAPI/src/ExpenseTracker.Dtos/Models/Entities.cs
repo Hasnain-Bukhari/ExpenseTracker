@@ -2,30 +2,6 @@ using System;
 
 namespace ExpenseTracker.Dtos.Models
 {
-    // CategoryType is now an entity (supports CRUD) instead of enum
-    public class CategoryType
-    {
-        public virtual Guid Id { get; set; }
-        public virtual string Name { get; set; } = null!;
-        public virtual string? Description { get; set; }
-        public virtual string? Color { get; set; } // For UI theming
-        public virtual bool IsActive { get; set; }
-        public virtual DateTime CreatedAt { get; set; }
-        public virtual DateTime UpdatedAt { get; set; }
-
-        public CategoryType() { }
-        public CategoryType(Guid id, string name, string? description, string? color, bool isActive, DateTime createdAt, DateTime updatedAt)
-        {
-            Id = id;
-            Name = name;
-            Description = description;
-            Color = color;
-            IsActive = isActive;
-            CreatedAt = createdAt;
-            UpdatedAt = updatedAt;
-        }
-    }
-    
     // AccountType entity (replaces enum)
     public class AccountType
     {
@@ -156,10 +132,17 @@ namespace ExpenseTracker.Dtos.Models
         public virtual string Name { get; set; } = null!;
         public virtual string Description { get; set; } = null!;
         public virtual Guid? ParentId { get; set; }
-        // Foreign key properties for easier API usage
-        public virtual Guid CategoryTypeId { get; set; }
-        // Navigation properties
-        public virtual CategoryType? CategoryType { get; set; }
+        
+        // Protected property for NHibernate mapping
+        protected virtual string CategoryTypeString { get; set; } = null!;
+        
+        // Public enum property for API
+        public virtual CategoryType CategoryType 
+        { 
+            get => Enum.Parse<CategoryType>(CategoryTypeString);
+            set => CategoryTypeString = value.ToString();
+        }
+        
         public virtual DateTime CreatedAt { get; set; }
         public virtual DateTime UpdatedAt { get; set; }
 
@@ -167,14 +150,14 @@ namespace ExpenseTracker.Dtos.Models
         public virtual System.Collections.Generic.IList<SubCategory> SubCategories { get; set; } = new System.Collections.Generic.List<SubCategory>();
 
         public Category() { }
-        public Category(Guid id, Guid userId, string name, string description, Guid? parentId, Guid categoryTypeId, DateTime createdAt, DateTime updatedAt)
+        public Category(Guid id, Guid userId, string name, string description, Guid? parentId, CategoryType categoryType, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             Name = name;
             Description = description;
             ParentId = parentId;
-            CategoryTypeId = categoryTypeId;
+            CategoryType = categoryType;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }

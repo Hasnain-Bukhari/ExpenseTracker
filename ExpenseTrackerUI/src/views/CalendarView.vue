@@ -122,7 +122,7 @@
                     v-for="(transaction, txIndex) in day.transactions.slice(0, 4)"
                     :key="txIndex"
                     class="transaction-indicator"
-                    :style="{ backgroundColor: transaction.category?.categoryType?.color || '#1976d2' }"
+                    :style="{ backgroundColor: getCategoryTypeColor(transaction.category?.categoryType) }"
                     :title="`${transaction.description} - ${formatCurrency(transaction.amount)}`"
                   ></div>
                   <div v-if="day.transactionCount > 4" class="more-indicator">
@@ -134,63 +134,127 @@
           </v-card-text>
         </v-card>
 
-        <!-- Selected Date Transactions -->
-        <v-card v-if="selectedDate && selectedDateTransactions.length > 0" class="mt-6" variant="outlined">
-          <v-card-title class="d-flex align-center">
-            <v-icon icon="mdi-calendar-today" class="mr-2" />
-            Transactions for {{ formatDate(selectedDate) }}
-          </v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item
-                v-for="transaction in selectedDateTransactions"
-                :key="transaction.id"
-                class="transaction-item"
-              >
-                <template v-slot:prepend>
-                  <v-avatar
-                    :color="transaction.category?.categoryType?.color || 'primary'"
-                    size="40"
-                  >
-                    <v-icon :color="getTransactionIconColor(transaction.category?.categoryType?.color)">
-                      {{ getTransactionIcon(transaction.category?.categoryType?.name) }}
-                    </v-icon>
-                  </v-avatar>
-                </template>
-                
-                <v-list-item-title class="font-weight-medium">
-                  {{ transaction.description || 'No description' }}
-                </v-list-item-title>
-                
-                <v-list-item-subtitle>
-                  {{ transaction.category?.name }} - {{ transaction.subCategory?.name || 'No subcategory' }}
-                </v-list-item-subtitle>
-                
-                <template v-slot:append>
-                  <div class="text-right">
-                    <p class="text-h6 font-weight-bold" :class="getAmountColor(transaction.category?.categoryType?.name)">
-                      {{ formatCurrency(transaction.amount) }}
-                    </p>
-                    <p class="text-caption text-secondary">{{ transaction.account?.name }}</p>
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-
-        <!-- Empty State -->
-        <v-card v-else-if="selectedDate && selectedDateTransactions.length === 0" class="mt-6" variant="outlined">
-          <v-card-text class="text-center py-8">
-            <v-icon icon="mdi-calendar-blank" size="64" color="grey-lighten-1" class="mb-4" />
-            <h3 class="text-h6 mb-2">No transactions on this date</h3>
-            <p class="text-body-2 text-secondary">Select a different date or add a new transaction.</p>
-          </v-card-text>
-        </v-card>
       </div>
     </v-main>
 
     <AppFooter />
+
+    <!-- Transactions Dialog -->
+    <v-dialog v-model="showTransactionsDialog" max-width="900px" rounded="xl">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center">
+          <v-icon icon="mdi-calendar-today" class="mr-2" />
+          Transactions for {{ selectedDate ? formatDate(selectedDate) : '' }}
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            variant="text"
+            @click="showTransactionsDialog = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text>
+          <!-- Loading State -->
+          <div v-if="isLoading" class="text-center py-8">
+            <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+            <p class="mt-4 text-body-1">Loading transactions...</p>
+          </div>
+
+          <!-- Transactions List -->
+          <div v-else-if="selectedDateTransactions.length > 0">
+            <div class="transaction-list">
+              <v-card
+                v-for="transaction in selectedDateTransactions"
+                :key="transaction.id"
+                class="transaction-card mb-4"
+                variant="outlined"
+                rounded="xl"
+              >
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center">
+                    <!-- Transaction Icon -->
+                    <v-avatar
+                      :color="getCategoryTypeColor(transaction.category?.categoryType)"
+                      size="56"
+                      class="mr-4"
+                    >
+                      <v-icon :color="getTransactionIconColor()" size="28">
+                        {{ getTransactionIcon(transaction.category?.categoryType) }}
+                      </v-icon>
+                    </v-avatar>
+                    
+                    <!-- Transaction Details -->
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-center justify-space-between mb-2">
+                        <h3 class="text-h6 font-weight-medium">
+                          {{ transaction.description || 'No description' }}
+                        </h3>
+                        <div class="text-right">
+                          <p class="text-h5 font-weight-bold mb-1" :class="getAmountColor(transaction.category?.categoryType)">
+                            {{ formatCurrency(transaction.amount) }}
+                          </p>
+                          <p class="text-caption text-secondary">
+                            {{ new Date(transaction.transactionDate).toLocaleTimeString('en-US', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            }) }}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <!-- Category and Account Info -->
+                      <div class="d-flex align-center gap-3">
+                        <v-chip
+                          :color="getCategoryTypeColor(transaction.category?.categoryType)"
+                          size="small"
+                          variant="tonal"
+                          prepend-icon="mdi-tag"
+                        >
+                          {{ transaction.category?.name }}
+                        </v-chip>
+                        
+                        <v-chip
+                          v-if="transaction.subCategory?.name"
+                          color="grey-lighten-1"
+                          size="small"
+                          variant="outlined"
+                          prepend-icon="mdi-tag-outline"
+                        >
+                          {{ transaction.subCategory.name }}
+                        </v-chip>
+                        
+                        <div class="d-flex align-center text-caption text-secondary">
+                          <v-icon icon="mdi-bank" size="16" class="mr-1"></v-icon>
+                          {{ transaction.account?.name }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else class="text-center py-8">
+            <v-icon icon="mdi-calendar-blank" size="64" color="grey-lighten-1" class="mb-4" />
+            <h3 class="text-h6 mb-2">No transactions on this date</h3>
+            <p class="text-body-2 text-secondary">Select a different date or add a new transaction.</p>
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-plus"
+              @click="showTransactionsDialog = false"
+              rounded="xl"
+              class="text-capitalize mt-4"
+            >
+              Add Transaction
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -200,6 +264,7 @@ import { useRoute } from 'vue-router'
 import { formatCurrency } from '@/utils/formatters'
 import { transactionService } from '@/services/apiService'
 import type { TransactionDto } from '@/types/transaction'
+import { CategoryType } from '@/types/category'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
@@ -209,9 +274,15 @@ const isLoading = ref(false)
 const currentDate = ref(new Date())
 const selectedDate = ref<Date | null>(null)
 const transactions = ref<TransactionDto[]>([])
+const showTransactionsDialog = ref(false)
 
 // Calendar data
 const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+// Helper functions
+const getCategoryTypeColor = (categoryType: CategoryType): string => {
+  return categoryType === CategoryType.Income ? '#4caf50' : '#f44336'
+}
 
 // Computed properties
 const currentMonthYear = computed(() => {
@@ -267,15 +338,11 @@ const monthlyStats = computed(() => {
   })
   
   const incomeTransactions = monthTransactions.filter(tx => {
-    if (!tx.category?.categoryType?.name) return false
-    const typeName = tx.category.categoryType.name.toLowerCase()
-    return typeName.includes('income') || typeName.includes('earning')
+    return tx.category?.categoryType === CategoryType.Income
   })
   
   const expenseTransactions = monthTransactions.filter(tx => {
-    if (!tx.category?.categoryType?.name) return false
-    const typeName = tx.category.categoryType.name.toLowerCase()
-    return !typeName.includes('income') && !typeName.includes('earning')
+    return tx.category?.categoryType === CategoryType.Expense
   })
   
   return {
@@ -365,6 +432,7 @@ const nextMonth = () => {
 
 const selectDate = (day: any) => {
   selectedDate.value = day.date
+  showTransactionsDialog.value = true
 }
 
 const formatDate = (date: Date): string => {
@@ -376,29 +444,18 @@ const formatDate = (date: Date): string => {
   })
 }
 
-const getTransactionIcon = (categoryTypeName: string | null | undefined): string => {
-  if (!categoryTypeName) return 'mdi-help-circle'
-  const type = categoryTypeName.toLowerCase()
-  if (type.includes('income') || type.includes('earning')) return 'mdi-trending-up'
-  if (type.includes('food') || type.includes('dining')) return 'mdi-food'
-  if (type.includes('transport') || type.includes('travel')) return 'mdi-car'
-  if (type.includes('shopping') || type.includes('retail')) return 'mdi-shopping'
-  if (type.includes('entertainment')) return 'mdi-movie'
-  if (type.includes('health') || type.includes('medical')) return 'mdi-medical-bag'
-  if (type.includes('education')) return 'mdi-school'
-  if (type.includes('utilities')) return 'mdi-home'
-  return 'mdi-currency-usd'
+const getTransactionIcon = (categoryType: CategoryType | undefined): string => {
+  if (!categoryType) return 'mdi-help-circle'
+  return categoryType === CategoryType.Income ? 'mdi-trending-up' : 'mdi-trending-down'
 }
 
-const getTransactionIconColor = (categoryTypeColor: string | null | undefined): string => {
-  return categoryTypeColor ? 'white' : 'primary'
+const getTransactionIconColor = (): string => {
+  return 'white'
 }
 
-const getAmountColor = (categoryTypeName: string | null | undefined): string => {
-  if (!categoryTypeName) return 'text-secondary'
-  const type = categoryTypeName.toLowerCase()
-  if (type.includes('income') || type.includes('earning')) return 'text-success'
-  return 'text-error'
+const getAmountColor = (categoryType: CategoryType | undefined): string => {
+  if (!categoryType) return 'text-secondary'
+  return categoryType === CategoryType.Income ? 'text-success' : 'text-error'
 }
 
 // Watch for month changes to reload data
@@ -578,5 +635,46 @@ onMounted(() => {
 .main-content {
   background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.02) 0%, rgba(var(--v-theme-secondary), 0.02) 100%);
   min-height: 100vh;
+}
+
+.transaction-list {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.transaction-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--v-theme-outline), 0.2);
+  background: rgba(var(--v-theme-surface), 0.5);
+}
+
+.transaction-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--v-theme-primary), 0.15);
+  border-color: rgba(var(--v-theme-primary), 0.3);
+}
+
+.transaction-card .v-card-text {
+  padding: 20px !important;
+}
+
+/* Custom scrollbar for transaction list */
+.transaction-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transaction-list::-webkit-scrollbar-track {
+  background: rgba(var(--v-theme-outline), 0.1);
+  border-radius: 3px;
+}
+
+.transaction-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--v-theme-primary), 0.3);
+  border-radius: 3px;
+}
+
+.transaction-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--v-theme-primary), 0.5);
 }
 </style>

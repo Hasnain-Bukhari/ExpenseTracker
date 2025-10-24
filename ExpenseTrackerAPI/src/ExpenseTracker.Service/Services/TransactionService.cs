@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ExpenseTracker.Dtos.Accounts;
 using ExpenseTracker.Dtos.AccountTypes;
 using ExpenseTracker.Dtos.Categories;
-using ExpenseTracker.Dtos.CategoryTypes;
 using ExpenseTracker.Dtos.Currencies;
 using ExpenseTracker.Dtos.Models;
 using ExpenseTracker.Dtos.Transactions;
@@ -72,10 +71,6 @@ namespace ExpenseTracker.Service.Services
             // Load navigation properties exactly like GetByIdAsync method
             createdTransaction.Account = await _accountRepo.GetByIdAsync(createdTransaction.AccountId);
             createdTransaction.Category = await _categoryRepo.GetByIdAsync(createdTransaction.CategoryId);
-            if (createdTransaction.Category != null && createdTransaction.Category.CategoryTypeId != Guid.Empty)
-            {
-                createdTransaction.Category.CategoryType = await _categoryRepo.GetCategoryTypeByIdAsync(createdTransaction.Category.CategoryTypeId);
-            }
             if (createdTransaction.SubCategoryId != Guid.Empty)
             {
                 createdTransaction.SubCategory = await _categoryRepo.GetSubByIdAsync(createdTransaction.SubCategoryId);
@@ -131,10 +126,6 @@ namespace ExpenseTracker.Service.Services
             // Load navigation properties
             transaction.Account = await _accountRepo.GetByIdAsync(transaction.AccountId);
             transaction.Category = await _categoryRepo.GetByIdAsync(transaction.CategoryId);
-            if (transaction.Category != null && transaction.Category.CategoryTypeId != Guid.Empty)
-            {
-                transaction.Category.CategoryType = await _categoryRepo.GetCategoryTypeByIdAsync(transaction.Category.CategoryTypeId);
-            }
             if (transaction.SubCategoryId != Guid.Empty)
             {
                 transaction.SubCategory = await _categoryRepo.GetSubByIdAsync(transaction.SubCategoryId);
@@ -230,19 +221,10 @@ namespace ExpenseTracker.Service.Services
                 transaction.Category.Id,
                 transaction.Category.UserId,
                 transaction.Category.Name,
-                transaction.Category.CategoryTypeId,
+                transaction.Category.CategoryType,
                 transaction.Category.Description,
                 transaction.Category.CreatedAt,
                 transaction.Category.UpdatedAt,
-                new CategoryTypeDto(
-                    transaction.Category.CategoryType.Id,
-                    transaction.Category.CategoryType.Name,
-                    transaction.Category.CategoryType.Description,
-                    transaction.Category.CategoryType.Color,
-                    transaction.Category.CategoryType.IsActive,
-                    transaction.Category.CategoryType.CreatedAt,
-                    transaction.Category.CategoryType.UpdatedAt
-                ),
                 null
             );
 

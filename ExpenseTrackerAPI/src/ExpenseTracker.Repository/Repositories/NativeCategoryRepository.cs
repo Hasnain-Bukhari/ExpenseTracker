@@ -26,7 +26,6 @@ namespace ExpenseTracker.Repository.Repositories
             using var s = _sf.OpenSession();
             return await s.Query<Category>()
                 .Where(c => c.Id == id)
-                .Fetch(c => c.CategoryType)
                 .FirstOrDefaultAsync();
         }
 
@@ -63,10 +62,7 @@ namespace ExpenseTracker.Repository.Repositories
             // Load navigation properties
             foreach (var category in categories)
             {
-                if (category.CategoryTypeId != Guid.Empty)
-                {
-                    category.CategoryType = await s.GetAsync<CategoryType>(category.CategoryTypeId);
-                }
+                // CategoryType is now an enum, no need to load navigation property
             }
             
             return categories;
@@ -115,10 +111,5 @@ namespace ExpenseTracker.Repository.Repositories
             return await s.Query<SubCategory>().Where(sc => sc.CategoryId == categoryId).ToListAsync();
         }
 
-        public async Task<CategoryType?> GetCategoryTypeByIdAsync(Guid id)
-        {
-            using var s = _sf.OpenSession();
-            return await s.GetAsync<CategoryType>(id);
-        }
     }
 }
