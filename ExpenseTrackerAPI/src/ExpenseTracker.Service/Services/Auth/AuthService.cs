@@ -51,11 +51,13 @@ namespace ExpenseTracker.Service.Services.Auth
                 true,
                 false,
                 request.Phone,
+                null, // ProfileImage
+                null, // DefaultAccountId
                 AuthProvider.Local,
                 null,
                 null,
-                DateTime.Now,
-                DateTime.Now
+                now,
+                now
             );
 
             await _userRepo.CreateAsync(user);
@@ -131,7 +133,26 @@ namespace ExpenseTracker.Service.Services.Auth
             if (user == null)
             {
                 var now = DateTimeOffset.UtcNow;
-                var newUser = new User(Guid.NewGuid(), verification.Email, verification.Email.ToUpperInvariant(), null, verification.Name, null, _options.DefaultLocale, _options.DefaultTimezone, true, true, null, provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, verification.ProviderId, DateTime.Now, DateTime.Now, DateTime.Now);
+                var newUser = new User(
+                    Guid.NewGuid(), 
+                    verification.Email, 
+                    verification.Email.ToUpperInvariant(), 
+                    null, 
+                    verification.Name, 
+                    null, 
+                    _options.DefaultLocale, 
+                    _options.DefaultTimezone, 
+                    true, 
+                    true, 
+                    null, 
+                    null, // ProfileImage
+                    null, // DefaultAccountId
+                    provider == "google" ? AuthProvider.Google : AuthProvider.Facebook, 
+                    verification.ProviderId, 
+                    DateTime.Now, 
+                    now.DateTime, 
+                    now.DateTime
+                );
                 await _userRepo.CreateAsync(newUser);
                 user = newUser;
             }

@@ -16,9 +16,11 @@ namespace ExpenseTracker.API.Controllers
         public AccountTypesController(AccountTypeService service) { _service = service; }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> List()
         {
-            var items = await _service.ListAsync();
+            var userId = GetUserId();
+            var items = await _service.ListAsync(userId);
             var dtos = new System.Collections.Generic.List<AccountTypeDto>();
             foreach (var a in items) dtos.Add(new AccountTypeDto(a.Id, a.Name, a.IsCard, a.CreatedAt, a.UpdatedAt));
             return Ok(dtos);
@@ -36,7 +38,8 @@ namespace ExpenseTracker.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAccountTypeDto dto)
         {
-            var entity = new AccountType(Guid.NewGuid(), dto.Name, dto.IsCard, DateTime.UtcNow, DateTime.UtcNow);
+            var userId = GetUserId();
+            var entity = new AccountType(Guid.NewGuid(), userId, dto.Name, dto.IsCard, DateTime.UtcNow, DateTime.UtcNow);
             await _service.CreateAsync(entity);
             return CreatedAtAction(nameof(Get), new { id = entity.Id }, new AccountTypeDto(entity.Id, entity.Name, entity.IsCard, entity.CreatedAt, entity.UpdatedAt));
         }
@@ -62,6 +65,19 @@ namespace ExpenseTracker.API.Controllers
             if (existing == null) return NotFound();
             await _service.DeleteAsync(id);
             return NoContent();
+        }
+
+        private Guid GetUserId()
+        {
+            var sub = User.FindFirst("sub")?.Value
+             ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+             ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+
+            if (string.IsNullOrWhiteSpace(sub) || !Guid.TryParse(sub, out var userId))
+            {
+                throw new UnauthorizedAccessException("User is not authenticated");
+            }
+            return userId;
         }
     }
 }

@@ -52,7 +52,50 @@ namespace ExpenseTracker.Repository.Repositories
         {
             using var session = _sessionFactory.OpenSession();
             using var tx = session.BeginTransaction();
-            await session.UpdateAsync(user);
+            
+            // Use direct SQL update to ensure the changes are persisted
+            var sql = @"
+                UPDATE users 
+                SET email = :email,
+                    normalized_email = :normalizedEmail,
+                    password_hash = :passwordHash,
+                    full_name = :fullName,
+                    default_currency_id = :defaultCurrencyId,
+                    locale = :locale,
+                    timezone = :timezone,
+                    is_active = :isActive,
+                    is_email_verified = :isEmailVerified,
+                    phone = :phone,
+                    profile_image = :profileImage,
+                    default_account_id = :defaultAccountId,
+                    provider = :provider,
+                    provider_id = :providerId,
+                    last_login_at = :lastLoginAt,
+                    created_at = :createdAt,
+                    updated_at = :updatedAt
+                WHERE id = :id";
+            
+            await session.CreateSQLQuery(sql)
+                .SetParameter("email", user.Email)
+                .SetParameter("normalizedEmail", user.NormalizedEmail)
+                .SetParameter("passwordHash", user.PasswordHash)
+                .SetParameter("fullName", user.FullName)
+                .SetParameter("defaultCurrencyId", user.DefaultCurrencyId)
+                .SetParameter("locale", user.Locale)
+                .SetParameter("timezone", user.Timezone)
+                .SetParameter("isActive", user.IsActive)
+                .SetParameter("isEmailVerified", user.IsEmailVerified)
+                .SetParameter("phone", user.Phone)
+                .SetParameter("profileImage", user.ProfileImage)
+                .SetParameter("defaultAccountId", user.DefaultAccountId)
+                .SetParameter("provider", user.Provider.ToString())
+                .SetParameter("providerId", user.ProviderId)
+                .SetParameter("lastLoginAt", user.LastLoginAt)
+                .SetParameter("createdAt", user.CreatedAt)
+                .SetParameter("updatedAt", user.UpdatedAt)
+                .SetParameter("id", user.Id)
+                .ExecuteUpdateAsync();
+            
             await tx.CommitAsync();
         }
     }

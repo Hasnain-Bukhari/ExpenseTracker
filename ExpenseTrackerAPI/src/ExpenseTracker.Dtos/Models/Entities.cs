@@ -30,6 +30,7 @@ namespace ExpenseTracker.Dtos.Models
     public class AccountType
     {
         public virtual Guid Id { get; set; }
+        public virtual Guid? UserId { get; set; }
         public virtual string Name { get; set; } = null!;
         // optional flag to indicate card-like types (we won't store CVV)
         public virtual bool IsCard { get; set; }
@@ -37,9 +38,9 @@ namespace ExpenseTracker.Dtos.Models
         public virtual DateTime UpdatedAt { get; set; }
 
         public AccountType() { }
-        public AccountType(Guid id, string name, bool isCard, DateTime createdAt, DateTime updatedAt)
+        public AccountType(Guid id, Guid? userId, string name, bool isCard, DateTime createdAt, DateTime updatedAt)
         {
-            Id = id; Name = name; IsCard = isCard; CreatedAt = createdAt; UpdatedAt = updatedAt;
+            Id = id; UserId = userId; Name = name; IsCard = isCard; CreatedAt = createdAt; UpdatedAt = updatedAt;
         }
     }
 
@@ -64,6 +65,9 @@ namespace ExpenseTracker.Dtos.Models
         public virtual bool IsActive { get; set; }
         public virtual bool IsEmailVerified { get; set; }
         public virtual string? Phone { get; set; }
+        public virtual string? ProfileImage { get; set; }
+        public virtual Guid? DefaultAccountId { get; set; }
+        public virtual Account? DefaultAccount { get; set; }
         public virtual AuthProvider Provider { get; set; }
         public virtual string? ProviderId { get; set; }
         public virtual DateTime? LastLoginAt { get; set; }
@@ -72,7 +76,7 @@ namespace ExpenseTracker.Dtos.Models
 
         public User() { }
 
-        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, Guid? defaultCurrencyId, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
+        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, Guid? defaultCurrencyId, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, string? profileImage, Guid? defaultAccountId, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             Email = email;
@@ -85,6 +89,8 @@ namespace ExpenseTracker.Dtos.Models
             IsActive = isActive;
             IsEmailVerified = isEmailVerified;
             Phone = phone;
+            ProfileImage = profileImage;
+            DefaultAccountId = defaultAccountId;
             Provider = provider;
             ProviderId = providerId;
             LastLoginAt = lastLoginAt;

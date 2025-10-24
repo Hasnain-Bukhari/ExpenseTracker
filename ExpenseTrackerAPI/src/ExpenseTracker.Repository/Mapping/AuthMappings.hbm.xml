@@ -16,6 +16,10 @@
     <property name="IsActive" column="is_active" />
     <property name="IsEmailVerified" column="is_email_verified" />
     <property name="Phone" column="phone" />
+    <property name="ProfileImage" column="profile_image" />
+    <!-- DefaultAccount is a FK to accounts.id; map both the FK and the many-to-one relation -->
+    <property name="DefaultAccountId" column="default_account_id" insert="false" update="false" />
+    <many-to-one name="DefaultAccount" class="ExpenseTracker.Dtos.Models.Account, ExpenseTracker.Dtos" column="default_account_id" />
     <property name="Provider" column="provider" type="NHibernate.Type.EnumStringType`1[[ExpenseTracker.Dtos.Models.AuthProvider, ExpenseTracker.Dtos]]" />
     <property name="ProviderId" column="provider_id" />
     <property name="LastLoginAt" column="last_login_at" />

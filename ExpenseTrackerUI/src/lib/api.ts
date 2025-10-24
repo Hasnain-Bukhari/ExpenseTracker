@@ -364,4 +364,38 @@ export const transactionApi = {
   }
 }
 
+export const profileApi = {
+  async get() {
+    const response = await api.get('/profile')
+    return response.data
+  },
+
+  async update(data: {
+    fullName?: string | null
+    phone?: string | null
+    profileImage?: string | null
+    defaultCurrencyId?: string | null
+    defaultAccountId?: string | null
+    locale?: string | null
+    timezone?: string | null
+  }) {
+    const response = await api.put('/profile', data)
+    return response.data
+  },
+
+  async changePassword(data: {
+    currentPassword: string
+    newPassword: string
+    confirmPassword: string
+  }) {
+    const response = await api.put('/profile/password', data)
+    return response.data
+  },
+
+  async updateImage(imageUrl: string) {
+    const response = await api.put('/profile/image', { imageUrl })
+    return response.data
+  }
+}
+
 export default api

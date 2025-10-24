@@ -13,5 +13,6 @@ namespace ExpenseTracker.Repository.Repositories
         Task UpdateAsync(AccountType accountType);
         Task DeleteAsync(Guid id);
         Task<IList<AccountType>> ListAsync();
+        Task<IList<AccountType>> ListByUserIdAsync(Guid userId);
     }
 }

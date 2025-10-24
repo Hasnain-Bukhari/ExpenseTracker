@@ -13,5 +13,6 @@ namespace ExpenseTracker.Repository.Repositories
         Task UpdateAsync(Currency currency);
         Task DeleteAsync(Guid id);
         Task<IList<Currency>> ListAsync();
+        Task<IList<Currency>> ListByUserIdAsync(Guid userId);
     }
 }

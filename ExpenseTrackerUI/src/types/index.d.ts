@@ -110,3 +110,6 @@ export * from './category'
 export * from './transaction'
 // Re-export Common types
 export * from './common'
+
+// Re-export Profile types
+export * from './profile'

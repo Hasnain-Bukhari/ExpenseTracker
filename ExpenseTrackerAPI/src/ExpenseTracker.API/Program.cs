@@ -14,8 +14,12 @@ using ExpenseTracker.Service.Services.Auth.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers
-builder.Services.AddControllers();
+// Add controllers with JSON configuration
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Add CORS policy to allow requests from other origins (development friendly)
 var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] ?? "http://localhost:3000,http://localhost:5000,http://localhost:5001,http://frontend:80";
@@ -140,6 +144,7 @@ builder.Services.AddScoped<AccountTypeService>();
 // Register auth service
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ProfileService>();
 
 var app = builder.Build();
 

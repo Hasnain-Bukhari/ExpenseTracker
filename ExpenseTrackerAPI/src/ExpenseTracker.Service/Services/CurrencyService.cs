@@ -11,7 +11,7 @@ namespace ExpenseTracker.Service.Services
         private readonly ICurrencyRepository _repo;
         public CurrencyService(ICurrencyRepository repo) { _repo = repo; }
 
-        public Task<IList<Currency>> ListAsync() => _repo.ListAsync();
+        public Task<IList<Currency>> ListAsync(Guid userId) => _repo.ListByUserIdAsync(userId);
         public Task<Currency?> GetAsync(Guid id) => _repo.GetByIdAsync(id);
         public Task CreateAsync(Currency c) => _repo.CreateAsync(c);
         public Task UpdateAsync(Currency c) => _repo.UpdateAsync(c);

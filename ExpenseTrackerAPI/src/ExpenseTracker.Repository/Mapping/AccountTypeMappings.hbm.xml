@@ -4,6 +4,7 @@
     <id name="Id" column="id" type="Guid">
       <generator class="assigned" />
     </id>
+    <property name="UserId" column="user_id" />
     <property name="Name" column="name" />
     <property name="IsCard" column="is_card" />
     <property name="CreatedAt" column="created_at" />

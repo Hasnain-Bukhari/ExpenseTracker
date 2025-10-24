@@ -47,6 +47,14 @@ namespace ExpenseTracker.Repository.Repositories
             return await s.Query<AccountType>().ToListAsync();
         }
 
+        public async Task<IList<AccountType>> ListByUserIdAsync(Guid userId)
+        {
+            using var s = _sf.OpenSession();
+            return await s.Query<AccountType>()
+                .Where(a => a.UserId == userId)
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(AccountType accountType)
         {
             using var s = _sf.OpenSession();

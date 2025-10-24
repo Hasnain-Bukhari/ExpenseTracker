@@ -47,6 +47,14 @@ namespace ExpenseTracker.Repository.Repositories
             return await s.Query<Currency>().ToListAsync();
         }
 
+        public async Task<IList<Currency>> ListByUserIdAsync(Guid userId)
+        {
+            using var s = _sf.OpenSession();
+            return await s.Query<Currency>()
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(Currency currency)
         {
             using var s = _sf.OpenSession();
