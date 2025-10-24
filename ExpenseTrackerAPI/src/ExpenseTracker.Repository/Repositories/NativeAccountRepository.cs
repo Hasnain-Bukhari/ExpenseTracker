@@ -14,6 +14,7 @@ namespace ExpenseTracker.Repository.Repositories
         Task UpdateAsync(Account a);
         Task DeleteAsync(Guid id);
         Task<IList<Account>> ListByUserIdAsync(Guid userId);
+        Task<IList<Account>> ListByUserIdAndCurrencyAsync(Guid userId, Guid currencyId);
     }
 
     public class NativeAccountRepository : IAccountRepository
@@ -61,6 +62,29 @@ namespace ExpenseTracker.Repository.Repositories
             using var s = _sf.OpenSession();
             var accounts = await s.Query<Account>()
                 .Where(a => a.UserId == userId)
+                .ToListAsync();
+            
+            // Load navigation properties
+            foreach (var account in accounts)
+            {
+                if (account.AccountTypeId != Guid.Empty)
+                {
+                    account.AccountType = await s.GetAsync<AccountType>(account.AccountTypeId);
+                }
+                if (account.CurrencyId != Guid.Empty)
+                {
+                    account.Currency = await s.GetAsync<Currency>(account.CurrencyId);
+                }
+            }
+            
+            return accounts;
+        }
+
+        public async Task<IList<Account>> ListByUserIdAndCurrencyAsync(Guid userId, Guid currencyId)
+        {
+            using var s = _sf.OpenSession();
+            var accounts = await s.Query<Account>()
+                .Where(a => a.UserId == userId && a.CurrencyId == currencyId)
                 .ToListAsync();
             
             // Load navigation properties

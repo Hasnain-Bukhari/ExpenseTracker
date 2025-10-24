@@ -92,6 +92,7 @@
                             rounded="xl"
                             prepend-inner-icon="mdi-currency-usd"
                             clearable
+                            @update:model-value="onCurrencyChange"
                           ></v-select>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -214,7 +215,7 @@ import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
 import PasswordField from '@/components/auth/PasswordField.vue'
-import { profileApi, currencyApi, accountApi } from '@/lib/api'
+import { profileService, currencyService, accountService } from '@/services/apiService'
 import type { ProfileDto, UpdateProfileDto, ChangePasswordDto } from '@/types/profile'
 
 // Reactive data
@@ -291,7 +292,7 @@ const confirmPasswordRules = [
 const loadProfile = async () => {
   loading.value = true
   try {
-    profile.value = await profileApi.get()
+    profile.value = await profileService.get()
     
     // Map profile data to form
     if (profile.value) {
@@ -312,7 +313,7 @@ const loadProfile = async () => {
 
 const loadCurrencies = async () => {
   try {
-    currencies.value = await currencyApi.list()
+    currencies.value = await currencyService.list()
   } catch (error) {
     console.error('Failed to load currencies:', error)
   }
@@ -320,7 +321,7 @@ const loadCurrencies = async () => {
 
 const loadAccounts = async () => {
   try {
-    accounts.value = await accountApi.list()
+    accounts.value = await accountService.list()
   } catch (error) {
     console.error('Failed to load accounts:', error)
   }
@@ -329,11 +330,9 @@ const loadAccounts = async () => {
 const updateProfile = async () => {
   saving.value = true
   try {
-    profile.value = await profileApi.update(profileForm)
-    // Show success message
+    profile.value = await profileService.update(profileForm)
   } catch (error) {
     console.error('Failed to update profile:', error)
-    // Show error message
   } finally {
     saving.value = false
   }
@@ -342,15 +341,13 @@ const updateProfile = async () => {
 const changePassword = async () => {
   changingPassword.value = true
   try {
-    await profileApi.changePassword(passwordForm)
+    await profileService.changePassword(passwordForm)
     // Clear password form
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
-    // Show success message
   } catch (error) {
     console.error('Failed to change password:', error)
-    // Show error message
   } finally {
     changingPassword.value = false
   }
@@ -358,15 +355,33 @@ const changePassword = async () => {
 
 const updateProfileImage = async () => {
   try {
-    await profileApi.updateImage(imageUrl.value)
+    await profileService.updateImage(imageUrl.value)
     profile.value!.profileImage = imageUrl.value
     profileForm.profileImage = imageUrl.value
     showImageDialog.value = false
     imageUrl.value = ''
-    // Show success message
   } catch (error) {
     console.error('Failed to update profile image:', error)
-    // Show error message
+  }
+}
+
+const onCurrencyChange = async (currencyId: string) => {
+  try {
+    // Update the profile form with the new currency
+    profileForm.defaultCurrencyId = currencyId
+    
+    // Load accounts filtered by the selected currency
+    if (currencyId) {
+      accounts.value = await profileService.getAccountsByCurrency(currencyId)
+      
+      // Reset the default account if it's not valid for the new currency
+      const validAccountIds = accounts.value.map(acc => acc.id)
+      if (profileForm.defaultAccountId && !validAccountIds.includes(profileForm.defaultAccountId)) {
+        profileForm.defaultAccountId = null
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load accounts for currency:', error)
   }
 }
 

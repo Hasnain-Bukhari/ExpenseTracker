@@ -309,7 +309,7 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
-import { accountApi, accountTypeApi, currencyApi } from '@/lib/api'
+import { accountService, accountTypeService, currencyService } from '@/services/apiService'
 import type { AccountDto, CreateAccountDto, UpdateAccountDto } from '@/types/account'
 import type { AccountTypeDto } from '@/types/accountType'
 import type { CurrencyDto } from '@/types/currency'
@@ -371,7 +371,7 @@ const currencyOptions = computed(() =>
 const loadAccounts = async () => {
   loading.value = true
   try {
-    const data = await accountApi.list()
+    const data = await accountService.list()
     accounts.value = data || []
   } catch (error) {
     console.error('Failed to load accounts:', error)
@@ -383,7 +383,7 @@ const loadAccounts = async () => {
 
 const loadAccountTypes = async () => {
   try {
-    const data = await accountTypeApi.list()
+    const data = await accountTypeService.list()
     accountTypes.value = data || []
   } catch (error) {
     console.error('Failed to load account types:', error)
@@ -393,7 +393,7 @@ const loadAccountTypes = async () => {
 
 const loadCurrencies = async () => {
   try {
-    const data = await currencyApi.list()
+    const data = await currencyService.list()
     currencies.value = data || []
   } catch (error) {
     console.error('Failed to load currencies:', error)
@@ -438,9 +438,9 @@ const saveAccount = async () => {
         id: editingAccount.value.id,
         ...form
       }
-      await accountApi.update(editingAccount.value.id, updateData)
+      await accountService.update(editingAccount.value.id, updateData)
     } else {
-      await accountApi.create(form)
+      await accountService.create(form)
     }
     await loadAccounts()
     closeDialog()
@@ -466,7 +466,7 @@ const confirmDelete = async () => {
   
   deleting.value = true
   try {
-    await accountApi.delete(accountToDelete.value.id)
+    await accountService.delete(accountToDelete.value.id)
     await loadAccounts()
     closeDeleteDialog()
   } catch (error) {

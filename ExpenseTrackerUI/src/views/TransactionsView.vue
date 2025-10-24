@@ -126,7 +126,7 @@
                     {{ formatDate(item.transactionDate) }}
                   </template>
 
-                  <template v-slot:item['category.categoryType.name']="{ item }">
+                  <template v-slot:item.categoryTypeName="{ item }">
                     <v-chip
                       :color="item.category?.categoryType?.color || 'primary'"
                       size="small"
@@ -330,8 +330,8 @@ import { ref, onMounted, reactive, computed, watch } from 'vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
-import { transactionApi, accountApi, categoryApi } from '@/lib/api'
-import type { TransactionDto, CreateTransactionDto, UpdateTransactionDto, PagedResult } from '@/types'
+import { transactionService, accountService, categoryService } from '@/services/apiService'
+import type { TransactionDto, CreateTransactionDto, PagedResult } from '@/types'
 import type { AccountDto } from '@/types/account'
 import type { CategoryDto } from '@/types/category'
 
@@ -352,7 +352,7 @@ const transactionToDelete = ref<TransactionDto | null>(null)
 const form = reactive<CreateTransactionDto>({
   accountId: '',
   categoryId: '',
-  subCategoryId: null,
+  subCategoryId: '',
   description: '',
   amount: 0,
   transactionDate: new Date().toISOString().split('T')[0]
@@ -379,7 +379,7 @@ const headers = [
   { title: 'Account', key: 'account.name', sortable: true },
   { title: 'Category', key: 'category.name', sortable: true },
   { title: 'Subcategory', key: 'subCategory.name', sortable: true },
-  { title: 'Type', key: 'category.categoryType.name', sortable: true },
+  { title: 'Type', key: 'categoryTypeName', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false }
 ]
 
@@ -432,7 +432,7 @@ const loadTransactions = async () => {
       pageSize: pagination.pageSize
     }
     
-    const result: PagedResult<TransactionDto> = await transactionApi.list(filterParams)
+    const result: PagedResult<TransactionDto> = await transactionService.list(filterParams)
     transactions.value = result.items || []
     pagination.total = result.total
   } catch (error) {
@@ -445,7 +445,7 @@ const loadTransactions = async () => {
 
 const loadAccounts = async () => {
   try {
-    const data = await accountApi.list()
+    const data = await accountService.list()
     accounts.value = data || []
   } catch (error) {
     console.error('Failed to load accounts:', error)
@@ -455,7 +455,7 @@ const loadAccounts = async () => {
 
 const loadCategories = async () => {
   try {
-    const data = await categoryApi.list()
+    const data = await categoryService.list()
     categories.value = data || []
   } catch (error) {
     console.error('Failed to load categories:', error)
@@ -497,7 +497,7 @@ const editTransaction = (transaction: TransactionDto) => {
 
   form.accountId = ''
   form.categoryId = ''
-  form.subCategoryId = null
+  form.subCategoryId = ''
   form.description = fullTransaction.description
   form.amount = fullTransaction.amount
   form.transactionDate = fullTransaction.transactionDate
@@ -514,12 +514,12 @@ const saveTransaction = async () => {
   saving.value = true
   try {
     if (editingTransaction.value) {
-      await transactionApi.update(editingTransaction.value.id, {
+      await transactionService.update(editingTransaction.value.id, {
         id: editingTransaction.value.id,
         ...form
       })
     } else {
-      await transactionApi.create(form)
+      await transactionService.create(form)
     }
     showDialog.value = false
     await loadTransactions()
@@ -541,7 +541,7 @@ const deleteTransaction = async () => {
 
   deleting.value = true
   try {
-    await transactionApi.delete(transactionToDelete.value.id)
+    await transactionService.delete(transactionToDelete.value.id)
     showDeleteDialog.value = false
     await loadTransactions()
   } catch (error) {
@@ -570,7 +570,7 @@ const onPageSizeChange = (pageSize: number) => {
 }
 
 const onCategoryChange = () => {
-  form.subCategoryId = null
+  form.subCategoryId = ''
 }
 
 const formatAmount = (amount: number, categoryType: string) => {

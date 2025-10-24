@@ -395,6 +395,11 @@ export const profileApi = {
   async updateImage(imageUrl: string) {
     const response = await api.put('/profile/image', { imageUrl })
     return response.data
+  },
+
+  async getAccountsByCurrency(currencyId: string) {
+    const response = await api.get(`/profile/accounts/${currencyId}`)
+    return response.data
   }
 }
 

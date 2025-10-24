@@ -262,5 +262,39 @@ namespace ExpenseTracker.Service.Services
             var hashedPassword = HashPassword(password);
             return hashedPassword == hash;
         }
+
+        public async Task<IEnumerable<AccountDto>> GetAccountsByCurrencyAsync(Guid userId, Guid currencyId)
+        {
+            var accounts = await _accountRepository.ListByUserIdAndCurrencyAsync(userId, currencyId);
+            var accountDtos = new List<AccountDto>();
+
+            foreach (var account in accounts)
+            {
+                var accountTypeDto = account.AccountType != null 
+                    ? new AccountTypeDto(account.AccountType.Id, account.AccountType.Name, account.AccountType.IsCard, account.AccountType.CreatedAt, account.AccountType.UpdatedAt)
+                    : null;
+                    
+                var currencyDto = account.Currency != null
+                    ? new CurrencyDto(account.Currency.Id, account.Currency.UserId, account.Currency.Code, account.Currency.Symbol, account.Currency.Name, account.Currency.CreatedAt, account.Currency.UpdatedAt)
+                    : null;
+                    
+                accountDtos.Add(new AccountDto(
+                    account.Id, 
+                    account.UserId, 
+                    account.Name, 
+                    account.AccountTypeId, 
+                    account.CurrencyId, 
+                    account.IsSavings, 
+                    account.OpeningBalance, 
+                    account.IncludeInNetworth, 
+                    account.CreatedAt, 
+                    account.UpdatedAt,
+                    accountTypeDto,
+                    currencyDto
+                ));
+            }
+
+            return accountDtos;
+        }
     }
 }

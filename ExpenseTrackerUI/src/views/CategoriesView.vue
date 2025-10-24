@@ -426,7 +426,7 @@ import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
 import api, { getAccessToken } from '@/lib/api'
-import { categoryTypeApi } from '@/lib/api'
+import { categoryTypeService } from '@/services/apiService'
 import type { CategoryDto, CreateCategoryDto, CreateSubCategoryDto, SubCategoryDto } from '@/types/category'
 import type { CategoryTypeDto } from '@/types/categoryType'
 
@@ -477,7 +477,7 @@ const authHeader = () => {
 
 const loadCategoryTypes = async () => {
   try {
-    const data = await categoryTypeApi.list()
+    const data = await categoryTypeService.list()
     categoryTypes.value = data || []
   } catch (error) {
     console.error('Failed to load category types:', error)

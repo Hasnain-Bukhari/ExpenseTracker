@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExpenseTracker.Dtos.Profile;
+using ExpenseTracker.Dtos.Accounts;
 using ExpenseTracker.Service.Services;
 using System.Security.Claims;
 
@@ -103,6 +104,25 @@ namespace ExpenseTracker.API.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("accounts/{currencyId}")]
+        public async Task<ActionResult<IEnumerable<AccountDto>>> GetAccountsByCurrency(Guid currencyId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var accounts = await _profileService.GetAccountsByCurrencyAsync(userId, currencyId);
+                return Ok(accounts);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
             }
             catch (Exception ex)
             {

@@ -277,7 +277,7 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
-import { currencyApi } from '@/lib/api'
+import { currencyService } from '@/services/apiService'
 import type { CurrencyDto, CreateCurrencyDto, UpdateCurrencyDto } from '@/types/currency'
 
 // Reactive data
@@ -325,7 +325,7 @@ const formRef = ref()
 const loadCurrencies = async () => {
   loading.value = true
   try {
-    const data = await currencyApi.list()
+    const data = await currencyService.list()
     currencies.value = data || []
   } catch (error) {
     console.error('Failed to load currencies:', error)
@@ -366,9 +366,9 @@ const saveCurrency = async () => {
         id: editingCurrency.value.id,
         ...form
       }
-      await currencyApi.update(editingCurrency.value.id, updateData)
+      await currencyService.update(editingCurrency.value.id, updateData)
     } else {
-      await currencyApi.create(form)
+      await currencyService.create(form)
     }
     await loadCurrencies()
     closeDialog()
@@ -394,7 +394,7 @@ const confirmDelete = async () => {
   
   deleting.value = true
   try {
-    await currencyApi.delete(currencyToDelete.value.id)
+    await currencyService.delete(currencyToDelete.value.id)
     await loadCurrencies()
     closeDeleteDialog()
   } catch (error) {

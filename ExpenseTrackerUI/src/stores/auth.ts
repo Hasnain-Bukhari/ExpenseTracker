@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, LoginRequest, RegisterRequest, AuthApiResponse } from '@/types/auth'
 import api, { setTokens, getRefreshToken, clearTokens } from '@/lib/api'
+import { toastService } from '@/services/toastService'
 
 const AUTH_USER_KEY = 'auth_user'
 
@@ -46,13 +47,16 @@ export const useAuthStore = defineStore('auth', () => {
           localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
         }
 
+        toastService.loginSuccess()
         return { success: true }
       }
 
       error.value = (response && (response as any).error) || 'Login failed'
+      toastService.loginFailed(error.value)
       return { success: false, error: error.value }
-    } catch (err) {
+    } catch (err: any) {
       error.value = 'Network error occurred'
+      toastService.handleApiError(err, 'Login')
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -77,13 +81,16 @@ export const useAuthStore = defineStore('auth', () => {
         // persist user
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
 
+        toastService.registerSuccess()
         return { success: true }
       }
 
       error.value = (response && (response as any).error) || 'Registration failed'
+      toastService.registerFailed(error.value)
       return { success: false, error: error.value }
-    } catch (err) {
+    } catch (err: any) {
       error.value = 'Network error occurred'
+      toastService.handleApiError(err, 'Registration')
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -110,13 +117,17 @@ export const useAuthStore = defineStore('auth', () => {
         setTokens(access, refresh, true)
         token.value = access ?? null
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
+        
+        toastService.loginSuccess()
         return { success: true }
       }
 
       error.value = (response && (response as any).error) || 'Social login failed'
+      toastService.loginFailed(error.value)
       return { success: false, error: error.value }
-    } catch (err) {
+    } catch (err: any) {
       error.value = 'Network error occurred'
+      toastService.handleApiError(err, 'Social login')
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -137,6 +148,8 @@ export const useAuthStore = defineStore('auth', () => {
     // Clear local persistence
     localStorage.removeItem(AUTH_USER_KEY)
     clearTokens()
+    
+    toastService.logoutSuccess()
   }
 
   const loadFromStorage = () => {
