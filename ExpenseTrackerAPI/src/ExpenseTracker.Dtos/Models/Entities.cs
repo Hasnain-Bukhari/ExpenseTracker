@@ -43,8 +43,6 @@ namespace ExpenseTracker.Dtos.Models
         }
     }
 
-    public enum TransactionType { Expense, Income, Transfer, Saving }
-    public enum TransactionStatus { Pending, Cleared, Reconciled }
     public enum BudgetPeriod { Monthly, Weekly, Yearly, Custom }
 
     // Authentication-related enum
@@ -239,39 +237,33 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual Guid AccountId { get; set; }
-        public virtual TransactionType Type { get; set; }
+        public virtual Guid CategoryId { get; set; }
+        public virtual Guid SubCategoryId { get; set; }
+        public virtual string? Description { get; set; }
         public virtual decimal Amount { get; set; }
-        public virtual Guid CurrencyId { get; set; }
-        public virtual Currency? Currency { get; set; }
-        public virtual decimal? OriginalAmount { get; set; }
-        public virtual Guid? OriginalCurrencyId { get; set; }
-        public virtual Currency? OriginalCurrency { get; set; }
-        public virtual DateTime Date { get; set; }
-        public virtual DateTimeOffset? SettledAt { get; set; }
-        public virtual Guid? CategoryId { get; set; }
-        public virtual Guid? GoalId { get; set; }
-        public virtual string? Notes { get; set; }
-        public virtual TransactionStatus Status { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
-        public virtual DateTimeOffset UpdatedAt { get; set; }
+        public virtual DateTime TransactionDate { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
+
+        // Navigation properties
+        public virtual Account? Account { get; set; }
+        public virtual Category? Category { get; set; }
+        public virtual SubCategory? SubCategory { get; set; }
 
         public Transaction() { }
-        public Transaction(Guid id, Guid userId, Guid accountId, TransactionType type, decimal amount, Guid currencyId, decimal? originalAmount, Guid? originalCurrencyId, DateTime date, DateTimeOffset? settledAt, Guid? categoryId, Guid? goalId, string? notes, TransactionStatus status, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Transaction(Guid id, Guid userId, Guid accountId, Guid categoryId, Guid subCategoryId, string? description, decimal amount, DateTime transactionDate, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             AccountId = accountId;
-            Type = type;
-            Amount = amount;
-            CurrencyId = currencyId;
-            OriginalAmount = originalAmount;
-            OriginalCurrencyId = originalCurrencyId;
-            Date = date;
-            SettledAt = settledAt;
+            Account = new Account() {Id = AccountId};
             CategoryId = categoryId;
-            GoalId = goalId;
-            Notes = notes;
-            Status = status;
+            Category = new Category() {Id = CategoryId};
+            SubCategoryId = subCategoryId;
+            SubCategory = new SubCategory() {Id = SubCategoryId};
+            Description = description;
+            Amount = amount;
+            TransactionDate = transactionDate;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }

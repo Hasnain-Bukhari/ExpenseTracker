@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="ExpenseTracker.Dtos" namespace="ExpenseTracker.Dtos.Models">
+  <class name="Transaction" table="transactions">
+    <id name="Id" column="id" type="Guid">
+      <generator class="assigned" />
+    </id>
+    <property name="UserId" column="user_id" />
+    <property name="AccountId" column="account_id" />
+    <property name="CategoryId" column="category_id" />
+    <property name="SubCategoryId" column="sub_category_id" />
+    <property name="Description" column="description" />
+    <property name="Amount" column="amount" />
+    <property name="TransactionDate" column="transaction_date" />
+    <property name="CreatedAt" column="created_at" />
+    <property name="UpdatedAt" column="updated_at" />
+    
+    <!-- Navigation properties -->
+    <many-to-one name="Account" class="Account" column="account_id" insert="false" update="false" />
+    <many-to-one name="Category" class="Category" column="category_id" insert="false" update="false" />
+    <many-to-one name="SubCategory" class="SubCategory" column="sub_category_id" insert="false" update="false" />
+  </class>
+</hibernate-mapping>

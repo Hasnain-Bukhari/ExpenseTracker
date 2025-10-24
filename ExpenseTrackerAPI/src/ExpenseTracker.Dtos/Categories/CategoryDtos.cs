@@ -32,6 +32,4 @@ namespace ExpenseTracker.Dtos.Categories
     public record CreateSubCategoryDto(string Name, string? Description);
     public record UpdateSubCategoryDto(string Name, string? Description);
     public record SubCategoryDto(Guid Id, Guid CategoryId, string Name, string? Description, DateTime CreatedAt, DateTime UpdatedAt);
-
-    public record PagedResult<T>(IList<T> Items, int Page, int PageSize, long Total);
 }

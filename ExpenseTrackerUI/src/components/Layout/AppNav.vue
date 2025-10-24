@@ -376,6 +376,11 @@ const primaryNavItems: (NavItem & { badge?: string; badgeColor?: string })[] = [
     to: '/accounts',
   },
   {
+    title: 'Transactions',
+    icon: 'mdi-swap-horizontal',
+    to: '/transactions',
+  },
+  {
     title: 'Goals',
     icon: 'mdi-target',
     to: '/goals',

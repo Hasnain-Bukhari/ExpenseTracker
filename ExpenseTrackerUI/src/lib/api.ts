@@ -204,6 +204,65 @@ export const categoryTypeApi = {
   }
 }
 
+// Category API functions
+export const categoryApi = {
+  async list() {
+    const response = await api.get('/categories')
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/categories/${id}`)
+    return response.data
+  },
+
+  async create(data: {
+    name: string
+    categoryTypeId: string
+    description?: string | null
+  }) {
+    const response = await api.post('/categories', data)
+    return response.data
+  },
+
+  async update(id: string, data: {
+    id: string
+    name: string
+    categoryTypeId: string
+    description?: string | null
+  }) {
+    const response = await api.put(`/categories/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/categories/${id}`)
+    return response.data
+  },
+
+  // Subcategory functions
+  async createSubcategory(categoryId: string, data: {
+    name: string
+    description?: string | null
+  }) {
+    const response = await api.post(`/categories/${categoryId}/subcategories`, data)
+    return response.data
+  },
+
+  async updateSubcategory(categoryId: string, subcategoryId: string, data: {
+    name: string
+    description?: string | null
+  }) {
+    const response = await api.put(`/categories/${categoryId}/subcategories/${subcategoryId}`, data)
+    return response.data
+  },
+
+  async deleteSubcategory(categoryId: string, subcategoryId: string) {
+    const response = await api.delete(`/categories/${categoryId}/subcategories/${subcategoryId}`)
+    return response.data
+  }
+}
+
 // Account API functions
 export const accountApi = {
   async list() {
@@ -243,6 +302,64 @@ export const accountApi = {
 
   async delete(id: string) {
     const response = await api.delete(`/accounts/${id}`)
+    return response.data
+  }
+}
+
+// Transaction API functions
+export const transactionApi = {
+  async list(filters?: {
+    accountId?: string
+    categoryId?: string
+    startDate?: string
+    endDate?: string
+    page?: number
+    pageSize?: number
+  }) {
+    const params = new URLSearchParams()
+    if (filters?.accountId) params.append('accountId', filters.accountId)
+    if (filters?.categoryId) params.append('categoryId', filters.categoryId)
+    if (filters?.startDate) params.append('startDate', filters.startDate)
+    if (filters?.endDate) params.append('endDate', filters.endDate)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.pageSize) params.append('pageSize', filters.pageSize.toString())
+    
+    const response = await api.get(`/transactions?${params.toString()}`)
+    return response.data
+  },
+
+  async get(id: string) {
+    const response = await api.get(`/transactions/${id}`)
+    return response.data
+  },
+
+      async create(data: {
+        accountId: string
+        categoryId: string
+        subCategoryId: string
+        description?: string | null
+        amount: number
+        transactionDate: string
+      }) {
+    const response = await api.post('/transactions', data)
+    return response.data
+  },
+
+      async update(id: string, data: {
+        id: string
+        accountId: string
+        categoryId: string
+        subCategoryId: string
+        description?: string | null
+        amount: number
+        transactionDate: string
+      }) {
+    const response = await api.put(`/transactions/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string) {
+    const response = await api.delete(`/transactions/${id}`)
     return response.data
   }
 }

@@ -24,7 +24,10 @@ namespace ExpenseTracker.Repository.Repositories
         public async Task<Category?> GetByIdAsync(Guid id)
         {
             using var s = _sf.OpenSession();
-            return await s.GetAsync<Category>(id);
+            return await s.Query<Category>()
+                .Where(c => c.Id == id)
+                .Fetch(c => c.CategoryType)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Category?> GetByNameAndUserAsync(Guid userId, string name)
@@ -110,6 +113,12 @@ namespace ExpenseTracker.Repository.Repositories
         {
             using var s = _sf.OpenSession();
             return await s.Query<SubCategory>().Where(sc => sc.CategoryId == categoryId).ToListAsync();
+        }
+
+        public async Task<CategoryType?> GetCategoryTypeByIdAsync(Guid id)
+        {
+            using var s = _sf.OpenSession();
+            return await s.GetAsync<CategoryType>(id);
         }
     }
 }

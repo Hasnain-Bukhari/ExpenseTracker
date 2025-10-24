@@ -32,7 +32,11 @@ namespace ExpenseTracker.Repository.Repositories
         public async Task<Account?> GetByIdAsync(Guid id)
         {
             using var s = _sf.OpenSession();
-            return await s.GetAsync<Account>(id) as Account;
+            return await s.Query<Account>()
+                .Where(a => a.Id == id)
+                .Fetch(a => a.AccountType)
+                .Fetch(a => a.Currency)
+                .FirstOrDefaultAsync();
         }
 
         public async Task UpdateAsync(Account a)
