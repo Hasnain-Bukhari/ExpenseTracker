@@ -106,6 +106,16 @@
           </v-row>
         </div>
 
+        <!-- Calendar Panel -->
+        <div 
+          class="calendar-section mb-8"
+          v-motion
+          :initial="{ opacity: 0, y: 20 }"
+          :enter="{ opacity: 1, y: 0, transition: { delay: 500, duration: 500 } }"
+        >
+          <CalendarPanel />
+        </div>
+
         <!-- Recent Transactions -->
         <div 
           class="transactions-section"
@@ -337,7 +347,6 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useRouter } from 'vue-router'
 import { formatCurrency } from '@/utils/formatters'
 import { transactionApi, accountApi, categoryApi } from '@/lib/api'
 import type { CreateTransactionDto } from '@/types'
@@ -350,9 +359,9 @@ import SummaryCards from '@/components/Dashboard/SummaryCards.vue'
 import MiniChart from '@/components/Dashboard/MiniChart.vue'
 import GoalsList from '@/components/Dashboard/GoalsList.vue'
 import RecentTransactions from '@/components/Dashboard/RecentTransactions.vue'
+import CalendarPanel from '@/components/Dashboard/CalendarPanel.vue'
 
 const { mobile } = useDisplay()
-const router = useRouter()
 
 // Reactive state
 const showAddTransaction = ref(false)
@@ -365,7 +374,7 @@ const formValid = ref(false)
 const transactionForm = reactive<CreateTransactionDto>({
   accountId: '',
   categoryId: '',
-  subCategoryId: null,
+  subCategoryId: '',
   description: '',
   amount: 0,
   transactionDate: new Date().toISOString().split('T')[0]
@@ -439,7 +448,7 @@ const closeTransactionDialog = () => {
   // Reset form
   transactionForm.accountId = ''
   transactionForm.categoryId = ''
-  transactionForm.subCategoryId = null
+  transactionForm.subCategoryId = ''
   transactionForm.description = ''
   transactionForm.amount = 0
   transactionForm.transactionDate = new Date().toISOString().split('T')[0]
@@ -463,7 +472,7 @@ const saveTransaction = async () => {
 }
 
 const onCategoryChange = () => {
-  transactionForm.subCategoryId = null
+  transactionForm.subCategoryId = ''
 }
 
 // Lifecycle

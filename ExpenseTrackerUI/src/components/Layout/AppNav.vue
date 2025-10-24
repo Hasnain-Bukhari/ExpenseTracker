@@ -381,6 +381,11 @@ const primaryNavItems: (NavItem & { badge?: string; badgeColor?: string })[] = [
     to: '/transactions',
   },
   {
+    title: 'Calendar',
+    icon: 'mdi-calendar-month',
+    to: '/calendar',
+  },
+  {
     title: 'Goals',
     icon: 'mdi-target',
     to: '/goals',
