@@ -101,6 +101,7 @@ cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountTypeMappings.hbm.xml",
 cfg.AddResource("ExpenseTracker.Repository.Mapping.AccountMappings.hbm.xml", typeof(NativeUserRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.TransactionMappings.hbm.xml", typeof(NativeTransactionRepository).Assembly);
 cfg.AddResource("ExpenseTracker.Repository.Mapping.BudgetMappings.hbm.xml", typeof(NativeBudgetRepository).Assembly);
+cfg.AddResource("ExpenseTracker.Repository.Mapping.GoalMappings.hbm.xml", typeof(NativeGoalRepository).Assembly);
 
 ISessionFactory? sessionFactory = null;
 try
@@ -137,6 +138,10 @@ builder.Services.AddScoped<TransactionService>();
 // Budget repository and service
 builder.Services.AddScoped<IBudgetRepository, NativeBudgetRepository>();
 builder.Services.AddScoped<BudgetService>();
+
+// Goal services
+builder.Services.AddScoped<IGoalRepository, NativeGoalRepository>();
+builder.Services.AddScoped<IGoalService, GoalService>();
 // Register services
 builder.Services.AddScoped<CurrencyService>();
 builder.Services.AddScoped<AccountTypeService>();

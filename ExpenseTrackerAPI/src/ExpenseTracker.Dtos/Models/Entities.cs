@@ -24,6 +24,22 @@ namespace ExpenseTracker.Dtos.Models
     // Authentication-related enum
     public enum AuthProvider { Local, Google, Facebook, Mixed }
 
+    // Goal-related enums
+    public enum GoalStatus 
+    { 
+        Active = 1, 
+        Paused = 2, 
+        Completed = 3, 
+        Cancelled = 4 
+    }
+
+    public enum GoalPriority 
+    { 
+        Low = 1, 
+        Medium = 2, 
+        High = 3 
+    }
+
     // User entity - converted from record to class for NHibernate proxy compatibility
     public class User
     {
@@ -138,8 +154,20 @@ namespace ExpenseTracker.Dtos.Models
         // Public enum property for API
         public virtual CategoryType CategoryType 
         { 
-            get => Enum.Parse<CategoryType>(CategoryTypeString);
-            set => CategoryTypeString = value.ToString();
+            get => CategoryTypeString switch
+            {
+                "Income" => CategoryType.Income,
+                "Expense" => CategoryType.Expense,
+                "TargetedSavingsGoal" => CategoryType.TargetedSavingsGoal,
+                _ => throw new ArgumentException($"Unknown category type: {CategoryTypeString}")
+            };
+            set => CategoryTypeString = value switch
+            {
+                CategoryType.Income => "Income",
+                CategoryType.Expense => "Expense",
+                CategoryType.TargetedSavingsGoal => "TargetedSavingsGoal",
+                _ => throw new ArgumentException($"Unknown category type: {value}")
+            };
         }
         
         public virtual DateTime CreatedAt { get; set; }
@@ -193,28 +221,50 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual string Name { get; set; } = null!;
+        public virtual string? Description { get; set; }
         public virtual decimal TargetAmount { get; set; }
-        public virtual Guid CurrencyId { get; set; }
-        public virtual Currency? Currency { get; set; }
-        public virtual Guid? AccountId { get; set; }
-        public virtual DateTime? Deadline { get; set; }
-        public virtual string? Note { get; set; }
-        public virtual bool Archived { get; set; }
+        public virtual decimal CurrentAmount { get; set; }
+        public virtual Guid CategoryId { get; set; }
+        public virtual Category? Category { get; set; }
+        public virtual DateTime StartDate { get; set; }
+        public virtual DateTime? EndDate { get; set; }
+        public virtual string? Tag { get; set; }
+        
+        // Public properties for NHibernate enum mapping
+        public virtual string GoalStatusString { get; set; } = "Active";
+        public virtual string GoalPriorityString { get; set; } = "Medium";
+        
+        // Public enum properties for API
+        public virtual GoalStatus Status 
+        { 
+            get => Enum.Parse<GoalStatus>(GoalStatusString);
+            set => GoalStatusString = value.ToString();
+        }
+        
+        public virtual GoalPriority Priority 
+        { 
+            get => Enum.Parse<GoalPriority>(GoalPriorityString);
+            set => GoalPriorityString = value.ToString();
+        }
+        
         public virtual DateTime CreatedAt { get; set; }
         public virtual DateTime UpdatedAt { get; set; }
 
         public Goal() { }
-        public Goal(Guid id, Guid userId, string name, decimal targetAmount, Guid currencyId, Guid? accountId, DateTime? deadline, string? note, bool archived, DateTime createdAt, DateTime updatedAt)
+        public Goal(Guid id, Guid userId, string name, string? description, decimal targetAmount, decimal currentAmount, Guid categoryId, DateTime startDate, DateTime? endDate, string? tag, GoalStatus status, GoalPriority priority, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             Name = name;
+            Description = description;
             TargetAmount = targetAmount;
-            CurrencyId = currencyId;
-            AccountId = accountId;
-            Deadline = deadline;
-            Note = note;
-            Archived = archived;
+            CurrentAmount = currentAmount;
+            CategoryId = categoryId;
+            StartDate = startDate;
+            EndDate = endDate;
+            Tag = tag;
+            Status = status;
+            Priority = priority;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }
