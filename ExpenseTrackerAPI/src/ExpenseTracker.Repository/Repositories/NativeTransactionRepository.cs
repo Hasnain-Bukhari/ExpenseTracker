@@ -250,5 +250,15 @@ namespace ExpenseTracker.Repository.Repositories
 
             return await query.CountAsync();
         }
+
+        public async Task<decimal> GetTotalSpentByCategoryAndDateRangeAsync(Guid userId, Guid categoryId, DateTime startDate, DateTime endDate)
+        {
+            using var s = _sf.OpenSession();
+            var total = await s.Query<Transaction>()
+                .Where(t => t.UserId == userId && t.CategoryId == categoryId && t.TransactionDate >= startDate && t.TransactionDate <= endDate)
+                .SumAsync(t => t.Amount);
+            
+            return total;
+        }
     }
 }

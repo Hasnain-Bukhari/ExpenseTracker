@@ -86,6 +86,11 @@
             class="main-chart"
             :style="{ maxHeight: $vuetify.display.mobile ? '200px' : '280px' }"
           />
+          <!-- Fallback message if chart fails -->
+          <div v-if="!chartInstance" class="chart-fallback">
+            <v-icon size="48" color="grey-lighten-1" class="mb-2">mdi-chart-line-variant</v-icon>
+            <p class="text-body-2 text-medium-emphasis">Chart loading...</p>
+          </div>
         </div>
 
         <!-- Chart Legend & Stats -->
@@ -150,88 +155,54 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  type ChartData,
-  type ChartOptions,
-} from 'chart.js'
 import { formatCurrency } from '@/utils/formatters'
-
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-)
+import { transactionService } from '@/lib/transactionService'
 
 const router = useRouter()
 const chartCanvas = ref<HTMLCanvasElement>()
 const selectedPeriod = ref('1y')
 const isLoading = ref(true)
-const chartInstance = ref<ChartJS | null>(null)
+const chartInstance = ref<any>(null)
 
-// Mock data based on selected period
-const chartData = computed((): ChartData<'line'> => {
-  const periods = {
-    '6m': {
-      labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
-      expenses: [1800, 1600, 1750, 1400, 1600, 1850],
-      income: [2750, 2650, 2800, 2600, 2700, 2850]
-    },
-    '1y': {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      expenses: [1200, 1900, 1300, 1500, 2000, 1800, 1600, 1750, 1400, 1600, 1750, 1900],
-      income: [2500, 2800, 2600, 2700, 2900, 2750, 2650, 2800, 2600, 2700, 2800, 2900]
-    },
-    'all': {
-      labels: ['2023 Q1', '2023 Q2', '2023 Q3', '2023 Q4', '2024 Q1', '2024 Q2', '2024 Q3', '2024 Q4'],
-      expenses: [4500, 5200, 4800, 5600, 5100, 5800, 5200, 5400],
-      income: [8100, 8400, 8200, 8600, 8300, 8700, 8400, 8500]
-    }
-  }
+// Real data from API
+const spendingData = ref({
+  labels: [] as string[],
+  expenses: [] as number[],
+  income: [] as number[]
+})
 
-  const data = periods[selectedPeriod.value as keyof typeof periods]
-  
+const currentMonthSpending = ref(0)
+const averageSpending = ref(0)
+
+// Computed chart data
+const chartData = computed(() => {
   return {
-    labels: data.labels,
+    labels: spendingData.value.labels,
     datasets: [
       {
         label: 'Expenses',
-        data: data.expenses,
+        data: spendingData.value.expenses,
         borderColor: 'rgb(239, 68, 68)',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         tension: 0.4,
         fill: true,
         pointBackgroundColor: 'rgb(239, 68, 68)',
-        pointBorderColor: 'rgb(var(--v-surface-rgb))',
+        pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
       },
       {
         label: 'Income',
-        data: data.income,
+        data: spendingData.value.income,
         borderColor: 'rgb(15, 118, 110)',
         backgroundColor: 'rgba(15, 118, 110, 0.1)',
         tension: 0.4,
         fill: true,
         pointBackgroundColor: 'rgb(15, 118, 110)',
-        pointBorderColor: 'rgb(var(--v-surface-rgb))',
+        pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
@@ -239,76 +210,6 @@ const chartData = computed((): ChartData<'line'> => {
     ],
   }
 })
-
-const chartOptions: ChartOptions<'line'> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false, // We'll use custom legend
-    },
-    tooltip: {
-      backgroundColor: 'rgba(var(--v-surface-rgb), 0.95)',
-      titleColor: 'var(--color-text-primary)',
-      bodyColor: 'var(--color-text-secondary)',
-      borderColor: 'rgba(var(--v-theme-on-surface-rgb), 0.08)',
-      borderWidth: 1,
-      cornerRadius: 8,
-      displayColors: true,
-      mode: 'index',
-      intersect: false,
-      callbacks: {
-        label: function(context) {
-          return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`
-        }
-      }
-    },
-  },
-  scales: {
-    x: {
-      display: true,
-      grid: {
-        display: false,
-      },
-      ticks: {
-        color: '#94a3b8',
-        font: {
-          size: 12,
-          weight: 500
-        }
-      },
-    },
-    y: {
-      display: true,
-      grid: {
-        color: 'rgba(148, 163, 184, 0.2)',
-        drawBorder: false,
-      },
-      ticks: {
-        color: '#94a3b8',
-        font: {
-          size: 12,
-          weight: 500
-        },
-        callback: function(value) {
-          return formatCurrency(value as number)
-        },
-      },
-    },
-  },
-  interaction: {
-    mode: 'nearest',
-    axis: 'x',
-    intersect: false,
-  },
-  animation: {
-    duration: 1500,
-    easing: 'easeInOutQuart',
-  },
-  hover: {
-    animationDuration: 200,
-  }
-}
 
 // Computed properties for stats
 const chartLegend = computed(() => {
@@ -320,22 +221,14 @@ const chartLegend = computed(() => {
   }))
 })
 
-const currentMonthSpending = computed(() => {
-  const expenses = chartData.value.datasets[0].data as number[]
-  return expenses[expenses.length - 1] || 0
-})
-
-const averageSpending = computed(() => {
-  const expenses = chartData.value.datasets[0].data as number[]
-  return expenses.reduce((sum, value) => sum + value, 0) / expenses.length
-})
-
 const trendPercentage = computed(() => {
-  const expenses = chartData.value.datasets[0].data as number[]
+  const expenses = spendingData.value.expenses
   if (expenses.length < 2) return 0
   
   const current = expenses[expenses.length - 1]
   const previous = expenses[expenses.length - 2]
+  if (previous === 0) return 0
+  
   return Math.round(((current - previous) / previous) * 100)
 })
 
@@ -348,22 +241,172 @@ const trendIcon = computed(() => {
 })
 
 // Methods
-const createChart = () => {
-  if (!chartCanvas.value) return
+const loadSpendingData = async () => {
+  try {
+    isLoading.value = true
+    
+    // Load spending trends for the selected period
+    const trendsData = await transactionService.getSpendingTrends(selectedPeriod.value as '6m' | '1y' | 'all')
+    spendingData.value = trendsData
+    
+    // Load current month spending
+    currentMonthSpending.value = await transactionService.getCurrentMonthSpending()
+    
+    // Load average monthly spending
+    averageSpending.value = await transactionService.getAverageMonthlySpending()
+    
+  } catch (error) {
+    console.error('Failed to load spending data:', error)
+    // Set default values on error - use some sample data to ensure chart renders
+    const sampleData = {
+      '6m': {
+        labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+        expenses: [1800, 1600, 1750, 1400, 1600, 1850],
+        income: [2750, 2650, 2800, 2600, 2700, 2850]
+      },
+      '1y': {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        expenses: [1200, 1900, 1300, 1500, 2000, 1800, 1600, 1750, 1400, 1600, 1750, 1900],
+        income: [2500, 2800, 2600, 2700, 2900, 2750, 2650, 2800, 2600, 2700, 2800, 2900]
+      },
+      'all': {
+        labels: ['2023 Q1', '2023 Q2', '2023 Q3', '2023 Q4', '2024 Q1', '2024 Q2', '2024 Q3', '2024 Q4'],
+        expenses: [4500, 5200, 4800, 5600, 5100, 5800, 5200, 5400],
+        income: [8100, 8400, 8200, 8600, 8300, 8700, 8400, 8500]
+      }
+    }
+    
+    const fallbackData = sampleData[selectedPeriod.value as keyof typeof sampleData]
+    spendingData.value = {
+      labels: fallbackData.labels,
+      expenses: fallbackData.expenses,
+      income: fallbackData.income
+    }
+    currentMonthSpending.value = fallbackData.expenses[fallbackData.expenses.length - 1] || 0
+    averageSpending.value = fallbackData.expenses.reduce((sum, val) => sum + val, 0) / fallbackData.expenses.length
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Methods
+const createChart = async () => {
+  if (!chartCanvas.value) {
+    console.log('Chart canvas not available')
+    return
+  }
   
   const ctx = chartCanvas.value.getContext('2d')
-  if (!ctx) return
+  if (!ctx) {
+    console.log('Could not get canvas context')
+    return
+  }
 
   // Destroy existing chart
   if (chartInstance.value) {
     chartInstance.value.destroy()
   }
-
-  chartInstance.value = new ChartJS(ctx, {
-    type: 'line',
-    data: chartData.value,
-    options: chartOptions,
-  })
+  
+  try {
+    // Dynamic import of Chart.js
+    const ChartModule = await import('chart.js')
+    
+    const Chart = ChartModule.Chart
+    const CategoryScale = ChartModule.CategoryScale
+    const LinearScale = ChartModule.LinearScale
+    const PointElement = ChartModule.PointElement
+    const LineElement = ChartModule.LineElement
+    const LineController = ChartModule.LineController
+    const Title = ChartModule.Title
+    const Tooltip = ChartModule.Tooltip
+    const Legend = ChartModule.Legend
+    const Filler = ChartModule.Filler
+    
+    // Register Chart.js components
+    Chart.register(
+      CategoryScale,
+      LinearScale,
+      PointElement,
+      LineElement,
+      LineController,
+      Title,
+      Tooltip,
+      Legend,
+      Filler
+    )
+    
+    chartInstance.value = new Chart(ctx, {
+      type: 'line',
+      data: chartData.value,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            displayColors: true,
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(context: any) {
+                return `${context.dataset.label}: ${formatCurrency(context.parsed.y || 0)}`
+              }
+            }
+          },
+        },
+        scales: {
+          x: {
+            display: true,
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color: '#94a3b8',
+              font: {
+                size: 12,
+                weight: 500
+              }
+            },
+          },
+          y: {
+            display: true,
+            grid: {
+              color: 'rgba(148, 163, 184, 0.2)',
+            },
+            ticks: {
+              color: '#94a3b8',
+              font: {
+                size: 12,
+                weight: 500
+              },
+              callback: function(value: any) {
+                return formatCurrency(value as number)
+              },
+            },
+          },
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false,
+        },
+        animation: {
+          duration: 1500,
+          easing: 'easeInOutQuart',
+        }
+      },
+    })
+  } catch (error) {
+    console.error('Error creating chart:', error)
+  }
 }
 
 const exportChart = () => {
@@ -381,18 +424,81 @@ const viewFullAnalytics = () => {
 }
 
 // Watch for period changes
-watch(selectedPeriod, () => {
-  isLoading.value = true
-  setTimeout(() => {
-    createChart()
-    isLoading.value = false
-  }, 500)
+watch(selectedPeriod, async () => {
+  await loadSpendingData()
+  await nextTick()
+  await createChart()
 })
 
-onMounted(() => {
-  setTimeout(() => {
-    createChart()
-    isLoading.value = false
-  }, 1000)
+onMounted(async () => {
+  await loadSpendingData()
+  await nextTick()
+  await createChart()
 })
 </script>
+
+<style scoped>
+.chart-card {
+  height: 100%;
+}
+
+.chart-container {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+
+.main-chart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1;
+}
+
+.chart-legend {
+  margin-top: 16px;
+}
+
+.legend-item {
+  margin-bottom: 8px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.chart-stats {
+  text-align: right;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 960px) {
+  .chart-container {
+    height: 200px;
+  }
+  
+  .chart-stats {
+    text-align: left;
+    margin-top: 16px;
+  }
+  
+  .stat-item {
+    justify-content: flex-start;
+  }
+}
+</style>

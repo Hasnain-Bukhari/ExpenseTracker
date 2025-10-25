@@ -97,11 +97,14 @@
           :enter="{ opacity: 1, y: 0, transition: { delay: 400, duration: 500 } }"
         >
           <v-row>
-            <v-col cols="12" lg="8">
+            <v-col cols="12" lg="6">
               <MiniChart />
             </v-col>
-            <v-col cols="12" lg="4">
+            <v-col cols="12" lg="3">
               <GoalsList />
+            </v-col>
+            <v-col cols="12" lg="3">
+              <BudgetPanel />
             </v-col>
           </v-row>
         </div>
@@ -374,6 +377,7 @@ import AppFooter from '@/components/Layout/AppFooter.vue'
 import SummaryCards from '@/components/Dashboard/SummaryCards.vue'
 import MiniChart from '@/components/Dashboard/MiniChart.vue'
 import GoalsList from '@/components/Dashboard/GoalsList.vue'
+import BudgetPanel from '@/components/Dashboard/BudgetPanel.vue'
 import RecentTransactions from '@/components/Dashboard/RecentTransactions.vue'
 import CalendarPanel from '@/components/Dashboard/CalendarPanel.vue'
 

@@ -20,7 +20,6 @@ namespace ExpenseTracker.Dtos.Models
         }
     }
 
-    public enum BudgetPeriod { Monthly, Weekly, Yearly, Custom }
 
     // Authentication-related enum
     public enum AuthProvider { Local, Google, Facebook, Mixed }
@@ -263,23 +262,26 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual Guid CategoryId { get; set; }
-        public virtual BudgetPeriod Period { get; set; }
         public virtual decimal Amount { get; set; }
-        public virtual DateTime StartDate { get; set; }
-        public virtual DateTime? EndDate { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
-        public virtual DateTimeOffset UpdatedAt { get; set; }
+        public virtual DateTime EffectiveFrom { get; set; }
+        public virtual DateTime? EffectiveTo { get; set; }
+        public virtual bool IsActive { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
+        public virtual DateTime UpdatedAt { get; set; }
+
+        // Navigation properties
+        public virtual Category? Category { get; set; }
 
         public Budget() { }
-        public Budget(Guid id, Guid userId, Guid categoryId, BudgetPeriod period, decimal amount, DateTime startDate, DateTime? endDate, DateTimeOffset createdAt, DateTimeOffset updatedAt)
+        public Budget(Guid id, Guid userId, Guid categoryId, decimal amount, DateTime effectiveFrom, DateTime? effectiveTo, bool isActive, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
             CategoryId = categoryId;
-            Period = period;
             Amount = amount;
-            StartDate = startDate;
-            EndDate = endDate;
+            EffectiveFrom = effectiveFrom;
+            EffectiveTo = effectiveTo;
+            IsActive = isActive;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }

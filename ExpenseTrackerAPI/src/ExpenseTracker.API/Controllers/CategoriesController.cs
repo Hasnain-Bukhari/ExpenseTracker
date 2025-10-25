@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -29,10 +30,16 @@ namespace ExpenseTracker.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List([FromQuery] string? categoryType = null)
         {
             var userId = GetUserId();
             var items = await _service.ListByUserAsync(userId);
+            
+            if (!string.IsNullOrEmpty(categoryType))
+            {
+                items = items.Where(c => c.CategoryType.ToString().Equals(categoryType, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            
             return Ok(items);
         }
 

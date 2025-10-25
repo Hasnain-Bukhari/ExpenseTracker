@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="ExpenseTracker.Dtos" namespace="ExpenseTracker.Dtos.Models">
+  <class name="Budget" table="budgets">
+    <id name="Id" column="id" type="Guid">
+      <generator class="guid.comb" />
+    </id>
+    
+    <property name="UserId" column="user_id" type="Guid" not-null="true" />
+    <property name="CategoryId" column="category_id" type="Guid" not-null="true" />
+    <property name="Amount" column="amount" type="decimal" precision="10" scale="2" not-null="true" />
+    <property name="EffectiveFrom" column="effective_from" type="date" not-null="true" />
+    <property name="EffectiveTo" column="effective_to" type="date" />
+    <property name="IsActive" column="is_active" type="boolean" not-null="true" />
+    <property name="CreatedAt" column="created_at" type="DateTime" not-null="true" />
+    <property name="UpdatedAt" column="updated_at" type="DateTime" not-null="true" />
+    
+    <!-- Navigation property for Category -->
+    <many-to-one name="Category" class="ExpenseTracker.Dtos.Models.Category, ExpenseTracker.Dtos" column="category_id" insert="false" update="false" />
+  </class>
+</hibernate-mapping>
