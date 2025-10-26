@@ -98,6 +98,48 @@ namespace ExpenseTracker.Service.Services
 
             return (currentTotal, targetTotal, percentage);
         }
+
+        public async Task<int> GetSpendingVsBudgetScoreAsync(Guid userId)
+        {
+            var today = DateTime.Today;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            var tomorrow = DateTime.Today.AddDays(1);
+
+            // Get all active budgets
+            var budgets = await _budgetRepository.GetActiveBudgetsByUserAsync(userId);
+            
+            if (budgets == null || !budgets.Any())
+            {
+                return 100; // Perfect score if no budgets configured
+            }
+
+            decimal totalBudget = 0;
+            decimal totalSpent = 0;
+
+            foreach (var budget in budgets)
+            {
+                totalBudget += budget.Amount;
+                
+                // Calculate spending for this category in current month
+                var spending = await _transactionRepository.GetTotalSpentByCategoryAndDateRangeAsync(
+                    userId, 
+                    budget.CategoryId, 
+                    startOfMonth, 
+                    tomorrow);
+                    
+                totalSpent += spending;
+            }
+
+            if (totalBudget == 0)
+            {
+                return 100; // Perfect score if budget is 0
+            }
+
+            // Calculate percentage: (remaining budget / total budget) * 100
+            // Score ranges from 0 (over budget) to 100 (at or under budget)
+            decimal score = (totalBudget - totalSpent) / totalBudget * 100;
+            return Math.Max(0, Math.Min(100, (int)score));
+        }
     }
 }
 

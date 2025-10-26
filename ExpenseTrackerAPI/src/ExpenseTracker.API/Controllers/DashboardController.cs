@@ -48,6 +48,7 @@ namespace ExpenseTracker.API.Controllers
             var todaySpending = await _dashboardService.GetTodaySpendingAsync(userId);
             var monthlyBudgetRemaining = await _dashboardService.GetMonthlyBudgetRemainingAsync(userId);
             var (goalsCurrent, goalsTarget, goalsPercentage) = await _dashboardService.GetGoalsProgressSummaryAsync(userId);
+            var spendingVsBudgetScore = await _dashboardService.GetSpendingVsBudgetScoreAsync(userId);
             
             return Ok(new
             {
@@ -58,7 +59,8 @@ namespace ExpenseTracker.API.Controllers
                     current = goalsCurrent,
                     target = goalsTarget,
                     percentage = goalsPercentage
-                }
+                },
+                spendingVsBudgetScore
             });
         }
 

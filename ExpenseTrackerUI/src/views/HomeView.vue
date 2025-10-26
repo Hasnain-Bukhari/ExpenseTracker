@@ -82,8 +82,8 @@
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="quick-stat text-center">
-                  <p class="text-caption text-secondary mb-1">Credit Score</p>
-                  <p class="text-h6 font-weight-bold text-info mb-0">742</p>
+                  <p class="text-caption text-secondary mb-1">Spending vs Budget</p>
+                  <p class="text-h6 font-weight-bold mb-0" :class="getBudgetScoreColor(spendingVsBudgetScore)">{{ spendingVsBudgetScore }}</p>
                 </div>
               </v-col>
             </v-row>
@@ -668,6 +668,7 @@ const expenseCategories = ref<CategoryDto[]>([])
 const todaySpending = ref(0)
 const monthlyBudgetRemaining = ref(0)
 const goalsProgressPercentage = ref(0)
+const spendingVsBudgetScore = ref(0)
 
 // Computed properties
 const isMobile = computed(() => mobile.value)
@@ -861,10 +862,19 @@ const loadDashboardStats = async () => {
     todaySpending.value = stats.todaySpending
     monthlyBudgetRemaining.value = stats.monthlyBudgetRemaining
     goalsProgressPercentage.value = stats.goalsProgress.percentage
+    spendingVsBudgetScore.value = stats.spendingVsBudgetScore
   } catch (error) {
     console.error('Failed to load dashboard stats:', error)
     // Keep default values of 0
   }
+}
+
+// Helper function to color the budget score
+const getBudgetScoreColor = (score: number): string => {
+  if (score >= 80) return 'text-success' // Green - excellent
+  if (score >= 60) return 'text-info' // Blue - good
+  if (score >= 40) return 'text-warning' // Orange - fair
+  return 'text-error' // Red - poor
 }
 
 // Lifecycle

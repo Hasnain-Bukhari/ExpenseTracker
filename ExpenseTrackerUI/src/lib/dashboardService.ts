@@ -8,6 +8,7 @@ export interface DashboardStats {
     target: number
     percentage: number
   }
+  spendingVsBudgetScore: number
 }
 
 export const dashboardService = {
