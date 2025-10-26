@@ -2,7 +2,8 @@
 
 export enum CategoryType {
   Income = 'Income',
-  Expense = 'Expense'
+  Expense = 'Expense',
+  TargetedSavingsGoal = 'TargetedSavingsGoal'
 }
 
 export interface CreateCategoryDto {

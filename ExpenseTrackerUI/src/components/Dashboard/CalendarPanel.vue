@@ -155,7 +155,12 @@ const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 // Helper functions
 const getCategoryTypeColor = (categoryType: CategoryType): string => {
-  return categoryType === CategoryType.Income ? '#4caf50' : '#f44336'
+  switch (categoryType) {
+    case CategoryType.Income: return '#4caf50'
+    case CategoryType.Expense: return '#f44336'
+    case CategoryType.TargetedSavingsGoal: return '#2196f3'
+    default: return '#9e9e9e'
+  }
 }
 
 // Computed properties

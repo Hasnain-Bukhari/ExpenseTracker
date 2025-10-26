@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <AppHeader />
+    <AppHeader @quick-add="handleQuickAdd" />
     <AppNav />
     
     <v-main class="main-content">
@@ -40,10 +40,21 @@
                 variant="tonal"
                 :prepend-icon="$vuetify.display.mobile ? undefined : 'mdi-target'"
                 :size="$vuetify.display.mobile ? 'small' : 'default'"
-                @click="showAddGoal = true"
+                @click="showAddGoalDialog = true"
               >
                 <v-icon v-if="$vuetify.display.mobile" class="mr-2">mdi-target</v-icon>
                 New Goal
+              </v-btn>
+              
+              <v-btn
+                color="info"
+                variant="tonal"
+                :prepend-icon="$vuetify.display.mobile ? undefined : 'mdi-chart-line'"
+                :size="$vuetify.display.mobile ? 'small' : 'default'"
+                @click="showAddBudgetDialog = true"
+              >
+                <v-icon v-if="$vuetify.display.mobile" class="mr-2">mdi-chart-line</v-icon>
+                New Budget
               </v-btn>
             </div>
           </div>
@@ -54,19 +65,19 @@
               <v-col cols="6" sm="3">
                 <div class="quick-stat text-center">
                   <p class="text-caption text-secondary mb-1">Today's Spending</p>
-                  <p class="text-h6 font-weight-bold text-primary mb-0">{{ formatCurrency(247.32) }}</p>
+                  <p class="text-h6 font-weight-bold text-primary mb-0">{{ formatCurrency(todaySpending) }}</p>
                 </div>
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="quick-stat text-center">
-                  <p class="text-caption text-secondary mb-1">Weekly Budget Left</p>
-                  <p class="text-h6 font-weight-bold text-success mb-0">{{ formatCurrency(1652.68) }}</p>
+                  <p class="text-caption text-secondary mb-1">Monthly Budget Left</p>
+                  <p class="text-h6 font-weight-bold text-success mb-0">{{ formatCurrency(monthlyBudgetRemaining) }}</p>
                 </div>
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="quick-stat text-center">
                   <p class="text-caption text-secondary mb-1">Goals Progress</p>
-                  <p class="text-h6 font-weight-bold text-warning mb-0">73%</p>
+                  <p class="text-h6 font-weight-bold text-warning mb-0">{{ Math.round(goalsProgressPercentage) }}%</p>
                 </div>
               </v-col>
               <v-col cols="6" sm="3">
@@ -271,16 +282,203 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="showAddGoal" max-width="600">
-      <v-card>
-        <v-card-title>Create New Goal</v-card-title>
+    <!-- Add Goal Dialog -->
+    <v-dialog v-model="showAddGoalDialog" max-width="600">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center">
+          <v-icon icon="mdi-target" class="mr-2"></v-icon>
+          Create New Goal
+        </v-card-title>
+        
         <v-card-text>
-          <p>Goal creation form would go here...</p>
+          <v-form ref="goalFormRef" v-model="goalFormValid">
+            <v-text-field
+              v-model="goalForm.name"
+              label="Goal Name"
+              :rules="[v => !!v || 'Name is required']"
+              variant="outlined"
+              rounded="xl"
+              required
+              class="mb-4"
+            />
+            
+            <v-textarea
+              v-model="goalForm.description"
+              label="Description"
+              rows="3"
+              variant="outlined"
+              rounded="xl"
+              class="mb-4"
+            />
+            
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="goalForm.targetAmount"
+                  label="Target Amount"
+                  type="number"
+                  :rules="[v => v > 0 || 'Target amount must be greater than 0']"
+                  variant="outlined"
+                  rounded="xl"
+                  required
+                />
+              </v-col>
+              
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="goalForm.currentAmount"
+                  label="Current Amount"
+                  type="number"
+                  :rules="[v => v >= 0 || 'Current amount cannot be negative']"
+                  variant="outlined"
+                  rounded="xl"
+                  required
+                />
+              </v-col>
+            </v-row>
+            
+            <v-select
+              v-model="goalForm.categoryId"
+              :items="savingsCategories"
+              item-title="name"
+              item-value="id"
+              label="Category"
+              :rules="[v => !!v || 'Category is required']"
+              variant="outlined"
+              rounded="xl"
+              required
+              class="mb-4"
+            />
+            
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model="goalForm.startDate"
+                  label="Start Date"
+                  type="date"
+                  :rules="[v => !!v || 'Start date is required']"
+                  variant="outlined"
+                  rounded="xl"
+                  required
+                />
+              </v-col>
+              
+              <v-col cols="6">
+                <v-text-field
+                  v-model="goalForm.endDate"
+                  label="End Date (Optional)"
+                  type="date"
+                  variant="outlined"
+                  rounded="xl"
+                />
+              </v-col>
+            </v-row>
+            
+            <v-row>
+              <v-col cols="6">
+                <v-select
+                  v-model="goalForm.priority"
+                  :items="priorityOptions"
+                  item-title="text"
+                  item-value="value"
+                  label="Priority"
+                  variant="outlined"
+                  rounded="xl"
+                  required
+                />
+              </v-col>
+              
+              <v-col cols="6">
+                <v-select
+                  v-model="goalForm.status"
+                  :items="statusOptions"
+                  item-title="text"
+                  item-value="value"
+                  label="Status"
+                  variant="outlined"
+                  rounded="xl"
+                  required
+                />
+              </v-col>
+            </v-row>
+            
+            <v-text-field
+              v-model="goalForm.tag"
+              label="Tag (Optional)"
+              placeholder="e.g., Emergency Fund, Vacation"
+              variant="outlined"
+              rounded="xl"
+            />
+          </v-form>
         </v-card-text>
+        
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showAddGoal = false">Cancel</v-btn>
-          <v-btn color="primary" @click="showAddGoal = false">Create</v-btn>
+          <v-btn @click="closeGoalDialog" rounded="xl">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            :loading="savingGoal"
+            :disabled="!goalFormValid"
+            @click="saveGoal"
+            rounded="xl"
+          >
+            Create
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Add Budget Dialog -->
+    <v-dialog v-model="showAddBudgetDialog" max-width="600px" rounded="xl">
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center">
+          <v-icon icon="mdi-chart-line" class="mr-2"></v-icon>
+          Create Budget
+        </v-card-title>
+        
+        <v-card-text>
+          <v-form ref="budgetFormRef" v-model="budgetFormValid">
+            <v-select
+              v-model="budgetForm.categoryId"
+              :items="expenseCategories"
+              item-title="name"
+              item-value="id"
+              label="Category"
+              :rules="[v => !!v || 'Category is required']"
+              variant="outlined"
+              rounded="xl"
+              class="mb-4"
+            />
+            
+            <v-text-field
+              v-model.number="budgetForm.amount"
+              label="Budget Amount"
+              type="number"
+              :rules="[
+                v => !!v || 'Amount is required',
+                v => v > 0 || 'Amount must be greater than zero'
+              ]"
+              variant="outlined"
+              rounded="xl"
+              prepend-inner-icon="mdi-currency-usd"
+              min="0.01"
+              step="0.01"
+            />
+          </v-form>
+        </v-card-text>
+        
+        <v-card-actions class="px-6 pb-6">
+          <v-spacer />
+          <v-btn @click="closeBudgetDialog" rounded="xl">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            @click="saveBudget"
+            :loading="savingBudget"
+            :disabled="!budgetFormValid"
+            rounded="xl"
+          >
+            Create
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -311,19 +509,19 @@
         <v-card class="fab-menu" elevation="8">
           <v-list density="compact">
             <v-list-item
-              prepend-icon="mdi-plus"
+              prepend-icon="mdi-plus-circle-outline"
               title="Add Transaction"
               @click="showAddTransaction = true; showQuickActions = false"
             />
             <v-list-item
               prepend-icon="mdi-target"
               title="New Goal"
-              @click="showAddGoal = true; showQuickActions = false"
+              @click="showAddGoalDialog = true; showQuickActions = false"
             />
             <v-list-item
               prepend-icon="mdi-chart-line"
-              title="View Reports"
-              @click="$router.push('/reports'); showQuickActions = false"
+              title="New Budget"
+              @click="showAddBudgetDialog = true; showQuickActions = false"
             />
           </v-list>
         </v-card>
@@ -346,31 +544,51 @@
                 Add Transaction
               </v-btn>
             </v-col>
-            <v-col cols="6">
-              <v-btn
-                block
-                color="success"
-                prepend-icon="mdi-target"
-                @click="showAddGoal = true; showQuickActions = false"
-              >
-                New Goal
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </v-bottom-sheet>
+              <v-col cols="6">
+                <v-btn
+                  block
+                  color="success"
+                  prepend-icon="mdi-target"
+                  @click="showAddGoalDialog = true; showQuickActions = false"
+                >
+                  New Goal
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row class="mt-2">
+              <v-col cols="12">
+                <v-btn
+                  block
+                  color="info"
+                  prepend-icon="mdi-chart-line"
+                  @click="showAddBudgetDialog = true; showQuickActions = false"
+                >
+                  New Budget
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-bottom-sheet>
   </v-app>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useDisplay } from 'vuetify'
+import { useToast } from 'vue-toastification'
 import { formatCurrency } from '@/utils/formatters'
 import { transactionApi, accountApi, categoryApi } from '@/lib/api'
+import { goalService } from '@/lib/goalService'
+import { budgetService } from '@/lib/budgetService'
+import { categoryService } from '@/lib/categoryService'
+import { dashboardService } from '@/lib/dashboardService'
 import type { CreateTransactionDto } from '@/types'
 import type { AccountDto } from '@/types/account'
 import type { CategoryDto } from '@/types/category'
+import { GoalStatus, GoalPriority } from '@/types/goal'
+import type { CreateGoalDto } from '@/types/goal'
+import type { CreateBudgetDto } from '@/types/budget'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
@@ -382,13 +600,53 @@ import RecentTransactions from '@/components/Dashboard/RecentTransactions.vue'
 import CalendarPanel from '@/components/Dashboard/CalendarPanel.vue'
 
 const { mobile } = useDisplay()
+const toast = useToast()
 
 // Reactive state
 const showAddTransaction = ref(false)
-const showAddGoal = ref(false)
+const showAddGoalDialog = ref(false)
+const showAddBudgetDialog = ref(false)
 const showQuickActions = ref(false)
 const saving = ref(false)
+const savingGoal = ref(false)
+const savingBudget = ref(false)
 const formValid = ref(false)
+const goalFormValid = ref(false)
+const budgetFormValid = ref(false)
+
+// Goal form
+const goalForm = reactive<CreateGoalDto>({
+  name: '',
+  description: '',
+  targetAmount: 0,
+  currentAmount: 0,
+  categoryId: '',
+  startDate: new Date().toISOString().split('T')[0],
+  endDate: null,
+  tag: '',
+  status: GoalStatus.Active,
+  priority: GoalPriority.Medium
+})
+
+// Budget form
+const budgetForm = reactive({
+  categoryId: '',
+  amount: 0
+})
+
+// Goal options
+const priorityOptions = [
+  { text: 'Low', value: GoalPriority.Low },
+  { text: 'Medium', value: GoalPriority.Medium },
+  { text: 'High', value: GoalPriority.High }
+]
+
+const statusOptions = [
+  { text: 'Active', value: GoalStatus.Active },
+  { text: 'Paused', value: GoalStatus.Paused },
+  { text: 'Completed', value: GoalStatus.Completed },
+  { text: 'Cancelled', value: GoalStatus.Cancelled }
+]
 
 // Transaction form
 const transactionForm = reactive<CreateTransactionDto>({
@@ -403,6 +661,13 @@ const transactionForm = reactive<CreateTransactionDto>({
 // Data
 const accounts = ref<AccountDto[]>([])
 const categories = ref<CategoryDto[]>([])
+const savingsCategories = ref<CategoryDto[]>([])
+const expenseCategories = ref<CategoryDto[]>([])
+
+// Dashboard stats
+const todaySpending = ref(0)
+const monthlyBudgetRemaining = ref(0)
+const goalsProgressPercentage = ref(0)
 
 // Computed properties
 const isMobile = computed(() => mobile.value)
@@ -495,11 +760,121 @@ const onCategoryChange = () => {
   transactionForm.subCategoryId = ''
 }
 
+// Handle quick add from header
+const handleQuickAdd = (action: 'transaction' | 'goal' | 'budget') => {
+  if (action === 'transaction') {
+    showAddTransaction.value = true
+  } else if (action === 'goal') {
+    showAddGoalDialog.value = true
+  } else if (action === 'budget') {
+    showAddBudgetDialog.value = true
+  }
+}
+
+// Load savings categories for goals
+const loadSavingsCategories = async () => {
+  try {
+    const allCategories = await categoryService.list()
+    savingsCategories.value = allCategories.filter((cat: CategoryDto) => cat.categoryType === 'TargetedSavingsGoal')
+  } catch (error) {
+    console.error('Failed to load savings categories:', error)
+    savingsCategories.value = []
+  }
+}
+
+// Load expense categories for budgets
+const loadExpenseCategories = async () => {
+  try {
+    expenseCategories.value = await categoryService.getExpenseCategories()
+  } catch (error) {
+    console.error('Failed to load expense categories:', error)
+    expenseCategories.value = []
+  }
+}
+
+// Close goal dialog
+const closeGoalDialog = () => {
+  showAddGoalDialog.value = false
+  goalForm.name = ''
+  goalForm.description = ''
+  goalForm.targetAmount = 0
+  goalForm.currentAmount = 0
+  goalForm.categoryId = ''
+  goalForm.startDate = new Date().toISOString().split('T')[0]
+  goalForm.endDate = null
+  goalForm.tag = ''
+  goalForm.status = GoalStatus.Active
+  goalForm.priority = GoalPriority.Medium
+}
+
+// Save goal
+const saveGoal = async () => {
+  if (!goalFormValid.value) return
+  
+  savingGoal.value = true
+  try {
+    await goalService.create(goalForm)
+    toast.success('Goal created successfully')
+    closeGoalDialog()
+    // TODO: Refresh goals list
+  } catch (error) {
+    console.error('Failed to save goal:', error)
+    toast.error('Failed to save goal')
+  } finally {
+    savingGoal.value = false
+  }
+}
+
+// Close budget dialog
+const closeBudgetDialog = () => {
+  showAddBudgetDialog.value = false
+  budgetForm.categoryId = ''
+  budgetForm.amount = 0
+}
+
+// Save budget
+const saveBudget = async () => {
+  if (!budgetFormValid.value) return
+  
+  savingBudget.value = true
+  try {
+    const budgetData: CreateBudgetDto = {
+      categoryId: budgetForm.categoryId,
+      amount: budgetForm.amount
+    }
+    await budgetService.create(budgetData)
+    toast.success('Budget created successfully')
+    closeBudgetDialog()
+    // TODO: Refresh budget list
+  } catch (error) {
+    console.error('Failed to save budget:', error)
+    toast.error('Failed to save budget')
+  } finally {
+    savingBudget.value = false
+  }
+}
+
+// Load dashboard stats
+const loadDashboardStats = async () => {
+  try {
+    const stats = await dashboardService.getStats()
+    todaySpending.value = stats.todaySpending
+    monthlyBudgetRemaining.value = stats.monthlyBudgetRemaining
+    goalsProgressPercentage.value = stats.goalsProgress.percentage
+  } catch (error) {
+    console.error('Failed to load dashboard stats:', error)
+    // Keep default values of 0
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   await Promise.all([
     loadAccounts(),
-    loadCategories()
+    loadCategories(),
+    loadSavingsCategories(),
+    loadExpenseCategories(),
+    loadDashboardStats()
   ])
 })
 </script>

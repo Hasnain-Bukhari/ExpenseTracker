@@ -1,6 +1,6 @@
 <template>
   <div class="categories-page">
-    <AppHeader title="Categories" />
+    <AppHeader />
     <AppNav />
     <v-main>
       <v-container fluid class="py-8">
@@ -465,16 +465,27 @@ const categoryTypeRules = [
 // Computed properties
 const categoryTypeOptions = computed(() => [
   { title: 'Income', value: CategoryType.Income },
-  { title: 'Expense', value: CategoryType.Expense }
+  { title: 'Expense', value: CategoryType.Expense },
+  { title: 'Targeted Savings Goal', value: CategoryType.TargetedSavingsGoal }
 ])
 
 // Helper functions
 const getCategoryTypeColor = (categoryType: CategoryType): string => {
-  return categoryType === CategoryType.Income ? 'success' : 'error'
+  switch (categoryType) {
+    case CategoryType.Income: return 'success'
+    case CategoryType.Expense: return 'error'
+    case CategoryType.TargetedSavingsGoal: return 'info'
+    default: return 'default'
+  }
 }
 
 const getCategoryTypeName = (categoryType: CategoryType): string => {
-  return categoryType === CategoryType.Income ? 'Income' : 'Expense'
+  switch (categoryType) {
+    case CategoryType.Income: return 'Income'
+    case CategoryType.Expense: return 'Expense'
+    case CategoryType.TargetedSavingsGoal: return 'Targeted Savings Goal'
+    default: return 'Unknown'
+  }
 }
 
 const authHeader = () => {

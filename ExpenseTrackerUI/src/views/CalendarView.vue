@@ -281,7 +281,12 @@ const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 
 // Helper functions
 const getCategoryTypeColor = (categoryType: CategoryType): string => {
-  return categoryType === CategoryType.Income ? '#4caf50' : '#f44336'
+  switch (categoryType) {
+    case CategoryType.Income: return '#4caf50'
+    case CategoryType.Expense: return '#f44336'
+    case CategoryType.TargetedSavingsGoal: return '#2196f3'
+    default: return '#9e9e9e'
+  }
 }
 
 // Computed properties
@@ -343,6 +348,10 @@ const monthlyStats = computed(() => {
   
   const expenseTransactions = monthTransactions.filter(tx => {
     return tx.category?.categoryType === CategoryType.Expense
+  })
+  
+  const goalTransactions = monthTransactions.filter(tx => {
+    return tx.category?.categoryType === CategoryType.TargetedSavingsGoal
   })
   
   return {
@@ -446,7 +455,12 @@ const formatDate = (date: Date): string => {
 
 const getTransactionIcon = (categoryType: CategoryType | undefined): string => {
   if (!categoryType) return 'mdi-help-circle'
-  return categoryType === CategoryType.Income ? 'mdi-trending-up' : 'mdi-trending-down'
+  switch (categoryType) {
+    case CategoryType.Income: return 'mdi-trending-up'
+    case CategoryType.Expense: return 'mdi-trending-down'
+    case CategoryType.TargetedSavingsGoal: return 'mdi-target'
+    default: return 'mdi-help-circle'
+  }
 }
 
 const getTransactionIconColor = (): string => {
@@ -455,7 +469,12 @@ const getTransactionIconColor = (): string => {
 
 const getAmountColor = (categoryType: CategoryType | undefined): string => {
   if (!categoryType) return 'text-secondary'
-  return categoryType === CategoryType.Income ? 'text-success' : 'text-error'
+  switch (categoryType) {
+    case CategoryType.Income: return 'text-success'
+    case CategoryType.Expense: return 'text-error'
+    case CategoryType.TargetedSavingsGoal: return 'text-info'
+    default: return 'text-secondary'
+  }
 }
 
 // Watch for month changes to reload data

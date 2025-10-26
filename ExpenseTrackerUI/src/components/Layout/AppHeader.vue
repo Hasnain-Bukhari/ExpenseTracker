@@ -96,19 +96,43 @@
       </v-btn>
 
       <!-- Quick Add Button -->
-      <v-btn
-        icon
-        variant="text"
-        :size="$vuetify.display.mobile ? 'small' : 'default'"
-        class="header-btn mr-1 mr-sm-2"
-        @click="showQuickAdd = true"
-        aria-label="Quick add transaction"
-      >
-        <v-icon color="primary">mdi-plus-circle-outline</v-icon>
-        <v-tooltip v-if="!$vuetify.display.mobile" activator="parent" location="bottom">
-          Quick Add
-        </v-tooltip>
-      </v-btn>
+      <v-menu offset-y location="bottom end" :close-on-content-click="false">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon
+            variant="text"
+            :size="$vuetify.display.mobile ? 'small' : 'default'"
+            class="header-btn mr-1 mr-sm-2"
+            aria-label="Quick add"
+          >
+            <v-icon color="primary">mdi-plus-circle-outline</v-icon>
+            <v-tooltip v-if="!$vuetify.display.mobile" activator="parent" location="bottom">
+              Quick Add
+            </v-tooltip>
+          </v-btn>
+        </template>
+        
+        <v-card elevation="8" rounded="xl" min-width="200">
+          <v-list density="compact">
+            <v-list-item
+              prepend-icon="mdi-plus-circle-outline"
+              title="Add Transaction"
+              @click="emit('quick-add', 'transaction')"
+            />
+            <v-list-item
+              prepend-icon="mdi-target"
+              title="New Goal"
+              @click="emit('quick-add', 'goal')"
+            />
+            <v-list-item
+              prepend-icon="mdi-chart-line"
+              title="New Budget"
+              @click="emit('quick-add', 'budget')"
+            />
+          </v-list>
+        </v-card>
+      </v-menu>
 
       <!-- Notifications -->
       <v-btn
@@ -298,9 +322,13 @@ const authStore = useAuthStore()
 const store = useAppStore()
 const themeStore = useThemeStore()
 
+// Define emits
+const emit = defineEmits<{
+  (e: 'quick-add', action: 'transaction' | 'goal' | 'budget'): void
+}>()
+
 // Reactive data
 const searchQuery = ref('')
-const showQuickAdd = ref(false)
 const showNotifications = ref(false)
 const showMobileSearch = ref(false)
 const notificationCount = ref(3)

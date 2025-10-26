@@ -354,11 +354,21 @@ const loadRecentTransactions = async () => {
 
 // Styling helpers
 const getAmountClass = (transaction: TransactionDto): string => {
-  return transaction.category?.categoryType === CategoryType.Income ? 'text-success' : 'text-error'
+  switch (transaction.category?.categoryType) {
+    case CategoryType.Income: return 'text-success'
+    case CategoryType.Expense: return 'text-error'
+    case CategoryType.TargetedSavingsGoal: return 'text-info'
+    default: return 'text-medium-emphasis'
+  }
 }
 
 const getAmountPrefix = (transaction: TransactionDto): string => {
-  return transaction.category?.categoryType === CategoryType.Income ? '+' : '-'
+  switch (transaction.category?.categoryType) {
+    case CategoryType.Income: return '+'
+    case CategoryType.Expense: return '-'
+    case CategoryType.TargetedSavingsGoal: return '→'
+    default: return ''
+  }
 }
 
 const getStatusColor = (): string => {
@@ -366,11 +376,21 @@ const getStatusColor = (): string => {
 }
 
 const getCategoryColor = (transaction: TransactionDto): string => {
-  return transaction.category?.categoryType === CategoryType.Income ? 'success' : 'error'
+  switch (transaction.category?.categoryType) {
+    case CategoryType.Income: return 'success'
+    case CategoryType.Expense: return 'error'
+    case CategoryType.TargetedSavingsGoal: return 'info'
+    default: return 'default'
+  }
 }
 
 const getCategoryIcon = (transaction: TransactionDto): string => {
-  return transaction.category?.categoryType === CategoryType.Income ? 'mdi-trending-up' : 'mdi-trending-down'
+  switch (transaction.category?.categoryType) {
+    case CategoryType.Income: return 'mdi-trending-up'
+    case CategoryType.Expense: return 'mdi-trending-down'
+    case CategoryType.TargetedSavingsGoal: return 'mdi-target'
+    default: return 'mdi-help-circle'
+  }
 }
 
 const getAccountIcon = (account: any): string => {

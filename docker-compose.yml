@@ -30,7 +30,7 @@ services:
     container_name: expense-tracker-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - CONNECTION_STRING=Host=postgres;Port=5432;Database=expense_tracker_dev;Username=postgres;Password=postgres
+      - CONNECTION_STRING=Host=localhost;Port=5432;Database=postgres;Username=hasnainbukhari;Password=;
       - JWT_SECRET=replace_this_secret_for_dev
       - ASPNETCORE_URLS=http://+:80
       - FRONTEND_ORIGINS=http://frontend:80,http://localhost:3000

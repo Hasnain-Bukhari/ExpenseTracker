@@ -571,21 +571,40 @@ const onCategoryChange = () => {
 
 const getCategoryTypeColor = (categoryType: CategoryType | undefined): string => {
   if (!categoryType) return 'primary'
-  return categoryType === CategoryType.Income ? 'success' : 'error'
+  switch (categoryType) {
+    case CategoryType.Income: return 'success'
+    case CategoryType.Expense: return 'error'
+    case CategoryType.TargetedSavingsGoal: return 'info'
+    default: return 'primary'
+  }
 }
 
 const getCategoryTypeName = (categoryType: CategoryType | undefined): string => {
   if (!categoryType) return 'Unknown'
-  return categoryType === CategoryType.Income ? 'Income' : 'Expense'
+  switch (categoryType) {
+    case CategoryType.Income: return 'Income'
+    case CategoryType.Expense: return 'Expense'
+    case CategoryType.TargetedSavingsGoal: return 'Targeted Savings Goal'
+    default: return 'Unknown'
+  }
 }
 
 const formatAmount = (amount: number, categoryType: CategoryType | undefined) => {
-  const sign = categoryType === CategoryType.Expense ? '-' : '+'
-  return `${sign}$${amount.toFixed(2)}`
+  switch (categoryType) {
+    case CategoryType.Expense: return `-$${amount.toFixed(2)}`
+    case CategoryType.Income: return `+$${amount.toFixed(2)}`
+    case CategoryType.TargetedSavingsGoal: return `→$${amount.toFixed(2)}`
+    default: return `$${amount.toFixed(2)}`
+  }
 }
 
 const getAmountClass = (categoryType: CategoryType | undefined) => {
-  return categoryType === CategoryType.Expense ? 'text-error' : 'text-success'
+  switch (categoryType) {
+    case CategoryType.Expense: return 'text-error'
+    case CategoryType.Income: return 'text-success'
+    case CategoryType.TargetedSavingsGoal: return 'text-info'
+    default: return 'text-medium-emphasis'
+  }
 }
 
 const formatDate = (dateString: string) => {

@@ -2,7 +2,7 @@
   <v-card class="goals-card dashboard-card">
     <!-- Card Header -->
     <v-card-title class="goals-header pa-4 pa-sm-6 pb-4">
-      <div class="header-content w-100">
+      <div class="header-content w-100 d-flex align-center justify-space-between">
         <div class="header-main d-flex align-center">
           <v-avatar 
             :size="$vuetify.display.mobile ? 36 : 40" 
@@ -13,45 +13,34 @@
             <v-icon icon="mdi-target" :size="$vuetify.display.mobile ? 18 : 20" />
           </v-avatar>
           <div class="header-text">
-            <h3 class="text-h6 text-sm-h5 font-weight-bold mb-0">Financial Goals</h3>
+            <h3 class="text-body-1 text-sm-h6 font-weight-bold mb-0">Financial Goals</h3>
             <p class="text-caption text-sm-body-2 text-secondary mb-0 d-none d-sm-block">Track your progress</p>
           </div>
         </div>
         
-        <div class="header-actions mt-3 mt-sm-0">
-          <v-menu offset-y>
-            <template v-slot:activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon
-                :size="$vuetify.display.mobile ? 'x-small' : 'small'"
-                variant="text"
-              >
-                <v-icon :size="$vuetify.display.mobile ? 14 : 16">mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
-            <v-list density="compact">
-              <v-list-item @click="addNewGoal">
-                <v-list-item-title>Add New Goal</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="viewAllGoals">
-                <v-list-item-title>View All Goals</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="exportGoals">
-                <v-list-item-title>Export Data</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </div>
+        <v-btn
+          variant="text"
+          :size="$vuetify.display.mobile ? 'x-small' : 'small'"
+          color="primary"
+          @click="viewAllGoals"
+        >
+          <span :class="$vuetify.display.mobile ? 'text-caption' : 'text-body-2'">View All</span>
+        </v-btn>
       </div>
     </v-card-title>
 
     <!-- Goals List -->
     <v-card-text class="pa-0">
       <div class="goals-container pa-3 pa-sm-6 pt-0">
+        <div v-if="isLoading" class="text-center py-8">
+          <v-progress-circular indeterminate color="primary" size="32" />
+          <p class="mt-2 text-caption text-medium-emphasis">Loading goals...</p>
+        </div>
+        
         <div
-          v-for="(goal, index) in goals"
-          :key="goal.id"
+          v-else-if="goals.length > 0"
+          v-for="(goal, index) in goals.slice(0, 3)"
+          :key="goal.goalId"
           class="goal-item"
           v-motion
           :initial="{ opacity: 0, x: -20 }"
@@ -78,7 +67,7 @@
                   variant="tonal"
                   class="priority-chip"
                 >
-                  {{ goal.priority.toUpperCase() }}
+                  {{ getPriorityLabel(goal.priority) }}
                 </v-chip>
               </div>
               
@@ -99,7 +88,7 @@
                 icon
                 size="small"
                 variant="text"
-                @click="quickAddToGoal(goal.id)"
+                @click="quickAddToGoal(goal.goalId)"
                 class="action-btn"
               >
                 <v-icon size="16">mdi-plus</v-icon>
@@ -115,8 +104,8 @@
             <!-- Progress Bar -->
             <div class="progress-container mb-2">
               <v-progress-linear
-                :model-value="getProgressPercentage(goal)"
-                :color="getProgressColor(getProgressPercentage(goal))"
+                :model-value="goal.percentageComplete"
+                :color="getProgressColor(goal.percentageComplete)"
                 height="12"
                 rounded
                 class="progress-bar"
@@ -125,7 +114,7 @@
                 <template v-slot:default>
                   <div class="progress-content d-flex align-center justify-center h-100">
                     <span class="progress-text text-caption font-weight-medium">
-                      {{ getProgressPercentage(goal).toFixed(0) }}%
+                      {{ goal.percentageComplete }}%
                     </span>
                   </div>
                 </template>
@@ -136,25 +125,25 @@
             <div class="progress-details d-flex justify-space-between align-center">
               <div class="progress-stats">
                 <span class="text-body-2 text-secondary">
-                  {{ getProgressPercentage(goal).toFixed(1) }}% complete
+                  {{ goal.percentageComplete }}% complete
                 </span>
                 <span class="remaining-amount text-caption text-tertiary ml-2">
-                  ({{ formatCurrency(goal.targetAmount - goal.currentAmount) }} remaining)
+                  ({{ formatCurrency(goal.remainingAmount) }} remaining)
                 </span>
               </div>
               
-              <div class="deadline-info d-flex align-center">
+              <div v-if="goal.endDate" class="deadline-info d-flex align-center">
                 <v-icon 
-                  :color="getDeadlineUrgency(goal.deadline)"
+                  :color="getDeadlineUrgency(goal.endDate)"
                   size="14" 
                   class="mr-1"
                 >
                   mdi-calendar-clock
                 </v-icon>
                 <span 
-                  :class="`text-caption text-${getDeadlineUrgency(goal.deadline)}`"
+                  :class="`text-caption text-${getDeadlineUrgency(goal.endDate)}`"
                 >
-                  {{ formatDateShort(goal.deadline) }}
+                  {{ formatDateShort(goal.endDate) }}
                 </span>
               </div>
             </div>
@@ -169,25 +158,25 @@
                 class="category-chip"
               >
                 <v-icon start size="12">mdi-tag-outline</v-icon>
-                {{ goal.category }}
+                {{ goal.categoryName }}
               </v-chip>
             </div>
             
             <div class="goal-status">
               <v-chip
-                :color="getStatusColor(getProgressPercentage(goal))"
+                :color="goal.statusColor"
                 size="small"
-                variant="dot"
+                variant="tonal"
                 class="status-chip"
               >
-                {{ getStatusText(getProgressPercentage(goal)) }}
+                {{ getStatusText(goal.percentageComplete) }}
               </v-chip>
             </div>
           </div>
         </div>
 
         <!-- Empty State -->
-        <div v-if="goals.length === 0" class="empty-state text-center py-8">
+        <div v-else class="empty-state text-center py-8">
           <v-icon size="64" color="primary" class="mb-4">mdi-target</v-icon>
           <h3 class="text-h6 font-weight-medium mb-2">No Goals Yet</h3>
           <p class="text-body-2 text-secondary mb-4">
@@ -199,39 +188,38 @@
           </v-btn>
         </div>
 
-        <!-- Quick Actions -->
-        <div v-if="goals.length > 0" class="quick-actions mt-4 pt-4 border-t">
-          <v-btn
-            variant="outlined"
-            color="primary"
-            block
-            @click="addNewGoal"
-          >
-            <v-icon start>mdi-plus</v-icon>
-            Add New Goal
-          </v-btn>
-        </div>
       </div>
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '@/stores'
+import { useToast } from 'vue-toastification'
+import { goalService } from '@/lib/goalService'
 import { formatCurrency, formatDateShort } from '@/utils/formatters'
-import type { Goal } from '@/types'
+import type { GoalProgressDto, GoalPriority } from '@/types/goal'
+import { getGoalPriorityLabel, getGoalPriorityColor } from '@/types/goal'
 
 const router = useRouter()
-const store = useAppStore()
+const toast = useToast()
 const isAnimating = ref(true)
+const isLoading = ref(false)
+const goals = ref<GoalProgressDto[]>([])
 
-const goals = computed(() => store.goals)
-
-// Progress calculations
-const getProgressPercentage = (goal: Goal): number => {
-  return Math.min((goal.currentAmount / goal.targetAmount) * 100, 100)
+// Load goals data
+const loadGoals = async () => {
+  isLoading.value = true
+  try {
+    goals.value = await goalService.getProgress()
+  } catch (error) {
+    console.error('Failed to load goals:', error)
+    toast.error('Failed to load goals')
+    goals.value = []
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const getProgressColor = (percentage: number): string => {
@@ -241,23 +229,15 @@ const getProgressColor = (percentage: number): string => {
   return 'error'
 }
 
-const getPriorityColor = (priority: string): string => {
-  switch (priority) {
-    case 'high': return 'error'
-    case 'medium': return 'warning'
-    case 'low': return 'info'
-    default: return 'primary'
-  }
+const getPriorityColor = (priority: GoalPriority): string => {
+  return getGoalPriorityColor(priority)
+}
+
+const getPriorityLabel = (priority: GoalPriority): string => {
+  return getGoalPriorityLabel(priority)
 }
 
 // Status helpers
-const getStatusColor = (percentage: number): string => {
-  if (percentage >= 100) return 'success'
-  if (percentage >= 75) return 'primary'
-  if (percentage >= 50) return 'warning'
-  return 'error'
-}
-
 const getStatusText = (percentage: number): string => {
   if (percentage >= 100) return 'Completed'
   if (percentage >= 75) return 'Nearly There'
@@ -280,16 +260,11 @@ const getDeadlineUrgency = (deadline: string): string => {
 
 // Actions
 const addNewGoal = () => {
-  router.push('/goals?action=add')
+  router.push('/goals')
 }
 
 const viewAllGoals = () => {
   router.push('/goals')
-}
-
-const exportGoals = () => {
-  // TODO: Implement export functionality
-  console.log('Exporting goals data...')
 }
 
 const quickAddToGoal = (goalId: string) => {
@@ -298,6 +273,7 @@ const quickAddToGoal = (goalId: string) => {
 }
 
 onMounted(() => {
+  loadGoals()
   // Start animation after component mounts
   setTimeout(() => {
     isAnimating.value = false
