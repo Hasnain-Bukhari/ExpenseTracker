@@ -17,5 +17,7 @@ namespace ExpenseTracker.Repository.Repositories
         Task<IList<Transaction>> ListByUserWithFiltersAsync(Guid userId, Guid? accountId, Guid? categoryId, DateTime? startDate, DateTime? endDate, int page, int pageSize);
         Task<long> CountByUserWithFiltersAsync(Guid userId, Guid? accountId, Guid? categoryId, DateTime? startDate, DateTime? endDate);
         Task<decimal> GetTotalSpentByCategoryAndDateRangeAsync(Guid userId, Guid categoryId, DateTime startDate, DateTime endDate);
+        Task<decimal> GetTotalSpendingByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate);
+        Task<decimal> GetTotalSpendingByDateRangeAndCategoryTypeAsync(Guid userId, DateTime startDate, DateTime endDate, string categoryType);
     }
 }

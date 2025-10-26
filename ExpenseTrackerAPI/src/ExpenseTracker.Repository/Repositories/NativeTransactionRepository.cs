@@ -256,9 +256,41 @@ namespace ExpenseTracker.Repository.Repositories
             using var s = _sf.OpenSession();
             var total = await s.Query<Transaction>()
                 .Where(t => t.UserId == userId && t.CategoryId == categoryId && t.TransactionDate >= startDate && t.TransactionDate <= endDate)
-                .SumAsync(t => t.Amount);
+                .SumAsync(t => (decimal?)t.Amount);
             
-            return total;
+            return total ?? 0m;
+        }
+
+        public async Task<decimal> GetTotalSpendingByDateRangeAsync(Guid userId, DateTime startDate, DateTime endDate)
+        {
+            using var s = _sf.OpenSession();
+            var total = await s.Query<Transaction>()
+                .Where(t => t.UserId == userId && t.TransactionDate >= startDate && t.TransactionDate <= endDate)
+                .SumAsync(t => (decimal?)t.Amount);
+            
+            return total ?? 0m;
+        }
+
+        public async Task<decimal> GetTotalSpendingByDateRangeAndCategoryTypeAsync(Guid userId, DateTime startDate, DateTime endDate, string categoryType)
+        {
+            using var s = _sf.OpenSession();
+            
+            // Get category IDs that match the category type
+            var categoryIds = await s.Query<Category>()
+                .Where(c => c.CategoryType.ToString() == categoryType)
+                .Select(c => c.Id)
+                .ToListAsync();
+            
+            if (!categoryIds.Any())
+            {
+                return 0m;
+            }
+            
+            var total = await s.Query<Transaction>()
+                .Where(t => t.UserId == userId && t.TransactionDate >= startDate && t.TransactionDate <= endDate && categoryIds.Contains(t.CategoryId))
+                .SumAsync(t => (decimal?)t.Amount);
+            
+            return total ?? 0m;
         }
     }
 }

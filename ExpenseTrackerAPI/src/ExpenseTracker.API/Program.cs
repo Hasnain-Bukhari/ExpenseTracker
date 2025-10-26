@@ -152,6 +152,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ProfileService>();
 
+// Register dashboard service
+builder.Services.AddScoped<DashboardService>();
+
 var app = builder.Build();
 
 // Run a simple SQL script or ensure DB connectivity on startup (placeholder)
