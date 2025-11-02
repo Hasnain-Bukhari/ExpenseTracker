@@ -462,9 +462,9 @@ export const profileService = {
     }
   },
 
-  async updateImage(imageUrl: string) {
+  async updateImage(file: File | null, imageUrl?: string) {
     try {
-      const result = await profileApi.updateImage(imageUrl)
+      const result = await profileApi.updateImage(file, imageUrl)
       toastService.success('Profile image updated successfully!')
       return result
     } catch (error) {

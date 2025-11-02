@@ -18,7 +18,7 @@
                 <v-row>
                   <!-- Profile Image Section -->
                   <v-col cols="12" md="4" class="text-center">
-                    <v-avatar size="120" class="mb-4">
+                    <v-avatar size="120" class="mb-4 profile-avatar">
                       <v-img
                         v-if="profile?.profileImage"
                         :src="profile.profileImage"
@@ -185,22 +185,64 @@
     </v-main>
 
     <!-- Profile Image Update Dialog -->
-    <v-dialog v-model="showImageDialog" max-width="500">
+    <v-dialog v-model="showImageDialog" max-width="600">
       <v-card>
-        <v-card-title>Update Profile Image</v-card-title>
+        <v-card-title class="d-flex align-center">
+          <v-icon icon="mdi-camera" class="mr-2"></v-icon>
+          Update Profile Image
+        </v-card-title>
         <v-card-text>
-          <v-text-field
-            v-model="imageUrl"
-            label="Image URL"
+          <div class="text-center mb-4">
+            <v-avatar size="150" class="mb-4">
+              <v-img
+                v-if="imagePreview"
+                :src="imagePreview"
+                alt="Preview"
+                cover
+              ></v-img>
+              <v-icon v-else size="60" color="grey-lighten-1">mdi-account-circle</v-icon>
+            </v-avatar>
+          </div>
+          
+          <v-file-input
+            v-model="selectedFile"
+            label="Choose Photo"
+            accept="image/*"
+            prepend-icon="mdi-camera"
             variant="outlined"
-            hint="Enter the URL of your profile image"
-            persistent-hint
-          ></v-text-field>
+            show-size
+            :rules="fileRules"
+            @update:model-value="onFileSelected"
+            :multiple="false"
+            class="mb-4"
+          >
+            <template v-slot:prepend>
+              <v-icon>mdi-camera</v-icon>
+            </template>
+          </v-file-input>
+
+          <v-alert
+            v-if="fileError"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mb-4"
+          >
+            {{ fileError }}
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="showImageDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="updateProfileImage">Update</v-btn>
+          <v-btn @click="closeImageDialog" rounded="xl">Cancel</v-btn>
+          <v-btn 
+            color="primary" 
+            @click="updateProfileImage"
+            :loading="uploadingImage"
+            :disabled="!selectedFile"
+            rounded="xl"
+          >
+            Upload
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -211,6 +253,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { useToast } from 'vue-toastification'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
 import AppFooter from '@/components/Layout/AppFooter.vue'
@@ -226,7 +269,10 @@ const profile = ref<ProfileDto | null>(null)
 const currencies = ref<any[]>([])
 const accounts = ref<any[]>([])
 const showImageDialog = ref(false)
-const imageUrl = ref('')
+const selectedFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(null)
+const uploadingImage = ref(false)
+const fileError = ref<string>('')
 
 // Form validation
 const profileFormValid = ref(false)
@@ -288,6 +334,20 @@ const confirmPasswordRules = [
   (v: string) => v === passwordForm.newPassword || 'Passwords do not match'
 ]
 
+const fileRules = [
+  (file: File | null) => {
+    if (!file) return true
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      return 'Invalid file type. Please select a JPG, PNG, GIF, or WebP image.'
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return 'File size must be less than 5MB.'
+    }
+    return true
+  }
+]
+
 // Methods
 const loadProfile = async () => {
   loading.value = true
@@ -303,6 +363,22 @@ const loadProfile = async () => {
       profileForm.defaultAccountId = profile.value.defaultAccountId
       profileForm.locale = profile.value.locale || ''
       profileForm.timezone = profile.value.timezone || ''
+      
+      // Sync profile image to auth store for header display
+      if (profile.value.profileImage) {
+        const { useAuthStore } = await import('@/stores/auth')
+        const authStore = useAuthStore()
+        if (authStore.user) {
+          authStore.user.avatar = profile.value.profileImage
+          // Persist to localStorage
+          const storedUser = localStorage.getItem('auth_user')
+          if (storedUser) {
+            const user = JSON.parse(storedUser)
+            user.avatar = profile.value.profileImage
+            localStorage.setItem('auth_user', JSON.stringify(user))
+          }
+        }
+      }
     }
   } catch (error) {
     console.error('Failed to load profile:', error)
@@ -338,30 +414,114 @@ const updateProfile = async () => {
   }
 }
 
+const toast = useToast()
+
 const changePassword = async () => {
   changingPassword.value = true
   try {
     await profileService.changePassword(passwordForm)
+    // Show success toast
+    toast.success('Password changed successfully!', {
+      timeout: 4000
+    })
     // Clear password form
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
-  } catch (error) {
+    // Reset form validation
+    if (passwordFormRef.value) {
+      passwordFormRef.value.resetValidation()
+    }
+  } catch (error: any) {
     console.error('Failed to change password:', error)
+    // Error toast is already shown by profileService, but show it here too for clarity
+    const errorMessage = error?.response?.data?.error || error?.message || 'Failed to change password. Please try again.'
+    toast.error(errorMessage, {
+      timeout: 6000
+    })
   } finally {
     changingPassword.value = false
   }
 }
 
+const onFileSelected = (files: File | File[] | null) => {
+  fileError.value = ''
+  
+  // Handle single file (v-file-input can return File or File[])
+  const file = Array.isArray(files) ? files[0] : files
+  
+  if (file) {
+    // Validate file
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      fileError.value = 'Invalid file type. Please select a JPG, PNG, GIF, or WebP image.'
+      selectedFile.value = null
+      imagePreview.value = null
+      return
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      fileError.value = 'File size must be less than 5MB.'
+      selectedFile.value = null
+      imagePreview.value = null
+      return
+    }
+    
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      imagePreview.value = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  } else {
+    imagePreview.value = null
+  }
+}
+
+const closeImageDialog = () => {
+  showImageDialog.value = false
+  selectedFile.value = null
+  imagePreview.value = null
+  fileError.value = ''
+}
+
 const updateProfileImage = async () => {
+  if (!selectedFile.value) return
+  
+  uploadingImage.value = true
+  fileError.value = ''
+  
   try {
-    await profileService.updateImage(imageUrl.value)
-    profile.value!.profileImage = imageUrl.value
-    profileForm.profileImage = imageUrl.value
-    showImageDialog.value = false
-    imageUrl.value = ''
-  } catch (error) {
+    const result = await profileService.updateImage(selectedFile.value)
+    
+    // Update local state
+    // Backend returns ProfileImageDto with ImageUrl property (camelCase: imageUrl)
+    const imageUrl = (result as any)?.imageUrl || (result as any)?.ImageUrl
+    if (profile.value && imageUrl) {
+      profile.value.profileImage = imageUrl
+      profileForm.profileImage = imageUrl
+      
+      // Update auth store to sync with header
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      if (authStore.user) {
+        authStore.user.avatar = imageUrl
+        // Persist to localStorage
+        const storedUser = localStorage.getItem('auth_user')
+        if (storedUser) {
+          const user = JSON.parse(storedUser)
+          user.avatar = imageUrl
+          localStorage.setItem('auth_user', JSON.stringify(user))
+        }
+      }
+    }
+    
+    closeImageDialog()
+  } catch (error: any) {
     console.error('Failed to update profile image:', error)
+    fileError.value = error.response?.data?.error || 'Failed to upload image. Please try again.'
+  } finally {
+    uploadingImage.value = false
   }
 }
 

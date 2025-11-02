@@ -297,7 +297,7 @@
               <v-form ref="formRef" v-model="formValid">
                 <v-select
                   v-model="form.categoryId"
-                  :items="expenseCategories"
+                  :items="availableCategoriesForBudget"
                   item-title="name"
                   item-value="id"
                   label="Category"
@@ -351,7 +351,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import AppHeader from '@/components/Layout/AppHeader.vue'
 import AppNav from '@/components/Layout/AppNav.vue'
@@ -373,6 +373,17 @@ const budgetProgress = ref<BudgetStatusDto[]>([])
 const activeBudgets = ref<BudgetDto[]>([])
 const budgetHistory = ref<BudgetDto[]>([])
 const expenseCategories = ref<CategoryDto[]>([])
+
+// Computed: Filter out categories that already have active budgets when creating a new budget
+const availableCategoriesForBudget = computed(() => {
+  if (!editingBudget.value) {
+    // When creating new budget, exclude categories with active budgets
+    const activeCategoryIds = new Set(activeBudgets.value.map(budget => budget.categoryId))
+    return expenseCategories.value.filter(category => !activeCategoryIds.has(category.id))
+  }
+  // When editing, show all categories (but the dropdown is disabled anyway)
+  return expenseCategories.value
+})
 
 // Form data
 const form = ref({

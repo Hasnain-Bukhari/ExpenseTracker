@@ -118,17 +118,17 @@
             <v-list-item
               prepend-icon="mdi-plus-circle-outline"
               title="Add Transaction"
-              @click="emit('quick-add', 'transaction')"
+              @click="handleQuickAdd('transaction')"
             />
             <v-list-item
               prepend-icon="mdi-target"
               title="New Goal"
-              @click="emit('quick-add', 'goal')"
+              @click="handleQuickAdd('goal')"
             />
             <v-list-item
               prepend-icon="mdi-chart-line"
               title="New Budget"
-              @click="emit('quick-add', 'budget')"
+              @click="handleQuickAdd('budget')"
             />
           </v-list>
         </v-card>
@@ -186,12 +186,13 @@
               <v-avatar 
                 size="36" 
                 class="user-avatar hover-lift"
-                :color="authStore.user?.avatar ? 'transparent' : 'primary'"
+                :color="(authStore.user?.avatar || profileImage) ? 'transparent' : 'primary'"
               >
                 <v-img
-                  v-if="authStore.user?.avatar"
-                  :src="authStore.user.avatar"
-                  :alt="authStore.user.name"
+                  v-if="authStore.user?.avatar || profileImage"
+                  :src="authStore.user?.avatar || profileImage"
+                  :alt="authStore.user?.name || 'User'"
+                  cover
                 />
                 <span v-else class="text-white font-weight-bold">
                   {{ authStore.userInitials }}
@@ -208,11 +209,12 @@
         <v-card class="user-menu-card" elevation="8">
           <v-card-text class="pa-4">
             <div class="d-flex align-center mb-3">
-              <v-avatar size="48" class="mr-3" :color="authStore.user?.avatar ? 'transparent' : 'primary'">
+              <v-avatar size="48" class="mr-3" :color="(authStore.user?.avatar || profileImage) ? 'transparent' : 'primary'">
                 <v-img
-                  v-if="authStore.user?.avatar"
-                  :src="authStore.user.avatar"
-                  :alt="authStore.user.name"
+                  v-if="authStore.user?.avatar || profileImage"
+                  :src="authStore.user?.avatar || profileImage"
+                  :alt="authStore.user?.name || 'User'"
+                  cover
                 />
                 <span v-else class="text-white font-weight-bold text-h6">
                   {{ authStore.userInitials }}
@@ -307,12 +309,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useDisplay, useTheme } from 'vuetify'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores'
 import { useThemeStore } from '@/stores/themeStore'
+import { useDialog } from '@/composables/useDialog'
 // ThemeSelector removed; header toggle handles theme switching
 
 const { mobile } = useDisplay()
@@ -321,17 +324,58 @@ const router = useRouter()
 const authStore = useAuthStore()
 const store = useAppStore()
 const themeStore = useThemeStore()
-
-// Define emits
-const emit = defineEmits<{
-  (e: 'quick-add', action: 'transaction' | 'goal' | 'budget'): void
-}>()
+const { handleQuickAdd } = useDialog()
 
 // Reactive data
 const searchQuery = ref('')
 const showNotifications = ref(false)
 const showMobileSearch = ref(false)
 const notificationCount = ref(3)
+const profileImage = ref<string | null>(null)
+
+// Load profile image from auth store or profile API
+const loadProfileImage = async () => {
+  // First check auth store
+  if (authStore.user?.avatar) {
+    profileImage.value = authStore.user.avatar
+    return
+  }
+  
+  // If not in auth store, try to load from profile API
+  try {
+    const { profileService } = await import('@/services/apiService')
+    const profile = await profileService.get()
+    if (profile?.profileImage) {
+      profileImage.value = profile.profileImage
+      // Sync to auth store
+      if (authStore.user) {
+        authStore.user.avatar = profile.profileImage
+        const storedUser = localStorage.getItem('auth_user')
+        if (storedUser) {
+          const user = JSON.parse(storedUser)
+          user.avatar = profile.profileImage
+          localStorage.setItem('auth_user', JSON.stringify(user))
+        }
+      }
+    }
+  } catch (error) {
+    // Silently fail - profile image is optional
+    console.debug('Could not load profile image:', error)
+  }
+}
+
+// Watch for auth store changes
+watch(() => authStore.user?.avatar, (newAvatar) => {
+  if (newAvatar) {
+    profileImage.value = newAvatar
+  }
+})
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    loadProfileImage()
+  }
+})
 
 // Computed properties
 const isMobile = computed(() => mobile.value)

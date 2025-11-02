@@ -89,12 +89,47 @@ namespace ExpenseTracker.API.Controllers
         }
 
         [HttpPut("image")]
-        public async Task<ActionResult<ProfileImageDto>> UpdateProfileImage([FromBody] ProfileImageDto dto)
+        public async Task<ActionResult<ProfileImageDto>> UpdateProfileImage([FromForm] IFormFile? file, [FromForm] string? imageUrl)
         {
             try
             {
                 var userId = GetUserId();
-                var result = await _profileService.UpdateProfileImageAsync(userId, dto.ImageUrl);
+                string imageData = null;
+
+                if (file != null && file.Length > 0)
+                {
+                    // Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                    var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return BadRequest(new { error = "Invalid file type. Only JPG, PNG, GIF, and WebP are allowed." });
+                    }
+
+                    // Validate file size (max 5MB)
+                    if (file.Length > 5 * 1024 * 1024)
+                    {
+                        return BadRequest(new { error = "File size exceeds 5MB limit." });
+                    }
+
+                    // Convert file to base64
+                    using var memoryStream = new MemoryStream();
+                    await file.CopyToAsync(memoryStream);
+                    var fileBytes = memoryStream.ToArray();
+                    var base64String = Convert.ToBase64String(fileBytes);
+                    imageData = $"data:{file.ContentType};base64,{base64String}";
+                }
+                else if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    // Support legacy URL-based updates
+                    imageData = imageUrl;
+                }
+                else
+                {
+                    return BadRequest(new { error = "Either a file or image URL is required." });
+                }
+
+                var result = await _profileService.UpdateProfileImageAsync(userId, imageData);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)

@@ -4,6 +4,7 @@ using ExpenseTracker.Dtos.Accounts;
 using ExpenseTracker.Dtos.AccountTypes;
 using ExpenseTracker.Dtos.Currencies;
 using ExpenseTracker.Repository.Repositories;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -233,34 +234,52 @@ namespace ExpenseTracker.Service.Services
             await _userRepository.UpdateAsync(user);
         }
 
-        public async Task<ProfileImageDto> UpdateProfileImageAsync(Guid userId, string imageUrl)
+        public async Task<ProfileImageDto> UpdateProfileImageAsync(Guid userId, string imageData)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException("User not found");
 
-            if (string.IsNullOrEmpty(imageUrl))
-                throw new ArgumentException("Image URL is required");
+            if (string.IsNullOrEmpty(imageData))
+                throw new ArgumentException("Image data is required");
 
-            user.ProfileImage = imageUrl;
+            // Store the image data (can be base64 blob or URL)
+            user.ProfileImage = imageData;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);
 
-            return new ProfileImageDto(imageUrl);
+            return new ProfileImageDto(imageData);
         }
 
-        private string HashPassword(string password)
+        private static string HashPassword(string? password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            if (password == null) return string.Empty;
+            // PBKDF2 (HMACSHA512) with salt - same as AuthService
+            var salt = RandomNumberGenerator.GetBytes(16);
+            const int iterations = 100_000;
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA512);
+            var hash = pbkdf2.GetBytes(64);
+            return $"{iterations}:{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
         }
 
-        private bool VerifyPassword(string password, string hash)
+        private static bool VerifyPassword(string password, string stored)
         {
-            var hashedPassword = HashPassword(password);
-            return hashedPassword == hash;
+            try
+            {
+                var parts = stored.Split(':');
+                if (parts.Length != 3) return false;
+                var iterations = int.Parse(parts[0]);
+                var salt = Convert.FromBase64String(parts[1]);
+                var hash = Convert.FromBase64String(parts[2]);
+                using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA512);
+                var computed = pbkdf2.GetBytes(hash.Length);
+                return CryptographicOperations.FixedTimeEquals(hash, computed);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<IEnumerable<AccountDto>> GetAccountsByCurrencyAsync(Guid userId, Guid currencyId)

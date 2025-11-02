@@ -29,7 +29,7 @@
       </div>
 
       <div v-else>
-        <div v-for="budget in budgets.slice(0, 3)" :key="budget.budgetId" class="mb-4">
+        <div v-for="budget in budgets.slice(0, 10)" :key="budget.budgetId" class="mb-4">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-body-2 font-weight-medium">{{ budget.categoryName }}</span>
             <span class="text-caption text-medium-emphasis">{{ budget.percentageUsed }}%</span>
@@ -49,14 +49,14 @@
           </div>
         </div>
 
-        <div v-if="budgets.length > 3" class="text-center mt-3">
+        <div v-if="budgets.length > 10" class="text-center mt-3">
           <v-btn
             variant="text"
             size="small"
             color="primary"
             @click="navigateToBudgets"
           >
-            View {{ budgets.length - 3 }} more budgets
+            View {{ budgets.length - 10 }} more budgets
           </v-btn>
         </div>
       </div>

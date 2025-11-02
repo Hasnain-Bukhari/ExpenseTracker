@@ -392,8 +392,21 @@ export const profileApi = {
     return response.data
   },
 
-  async updateImage(imageUrl: string) {
-    const response = await api.put('/profile/image', { imageUrl })
+  async updateImage(file: File | null, imageUrl?: string) {
+    const formData = new FormData()
+    if (file) {
+      formData.append('file', file)
+    } else if (imageUrl) {
+      formData.append('imageUrl', imageUrl)
+    } else {
+      throw new Error('Either a file or image URL is required')
+    }
+    
+    const response = await api.put('/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return response.data
   },
 
