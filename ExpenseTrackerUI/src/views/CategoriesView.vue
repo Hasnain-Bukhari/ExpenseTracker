@@ -653,12 +653,11 @@ onMounted(async () => {
 <style scoped>
 .categories-page {
   min-height: 100vh;
-  background-color: #f5f7fa; /* Light background for the page */
+  background-color: rgb(var(--v-theme-background));
 }
 
 .v-card {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .category-card {
@@ -703,17 +702,17 @@ onMounted(async () => {
 }
 
 .subcategories-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgb(var(--v-theme-surface-variant));
   border-radius: 2px;
 }
 
 .subcategories-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: rgb(var(--v-theme-outline));
   border-radius: 2px;
 }
 
 .subcategories-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgba(var(--v-theme-outline), 0.8);
 }
 </style>
 

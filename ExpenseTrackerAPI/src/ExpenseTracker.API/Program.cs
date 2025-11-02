@@ -22,19 +22,72 @@ builder.Services.AddControllers()
     });
 
 // Add CORS policy to allow requests from other origins (development friendly)
-var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] ?? "http://localhost:3000,http://localhost:5000,http://localhost:5001,http://frontend:80";
-var origins = frontendOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+// In development, allow requests from any origin on the local network
+var isDevelopment = builder.Environment.IsDevelopment();
+var frontendOrigins = builder.Configuration["FRONTEND_ORIGINS"] 
+    ?? (isDevelopment 
+        ? "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://localhost:5001,http://frontend:80" 
+        : "http://localhost:3000,http://localhost:5001,http://frontend:80");
 
-builder.Services.AddCors(options =>
+// In development, also allow any IP on the local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+if (isDevelopment)
 {
-    options.AddPolicy("AllowAll", policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins(origins)
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-              // Do not call AllowCredentials() here unless you explicitly need cross-origin cookies
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy
+                .SetIsOriginAllowed(origin =>
+                {
+                    // Allow localhost with any port
+                    if (origin.StartsWith("http://localhost:") || origin.StartsWith("https://localhost:"))
+                        return true;
+                    
+                    // Allow any IP on local network (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+                    var uri = new Uri(origin);
+                    var host = uri.Host;
+                    var ipParts = host.Split('.');
+                    if (ipParts.Length == 4)
+                    {
+                        var firstOctet = int.Parse(ipParts[0]);
+                        var secondOctet = int.Parse(ipParts[1]);
+                        
+                        // 192.168.x.x
+                        if (firstOctet == 192 && secondOctet == 168)
+                            return true;
+                        
+                        // 10.x.x.x
+                        if (firstOctet == 10)
+                            return true;
+                        
+                        // 172.16.x.x - 172.31.x.x
+                        if (firstOctet == 172 && secondOctet >= 16 && secondOctet <= 31)
+                            return true;
+                    }
+                    
+                    return false;
+                })
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
     });
-});
+}
+else
+{
+    // Production: only allow specific origins
+    var origins = frontendOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.WithOrigins(origins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
+    });
+}
 
 // Register FluentValidation validators explicitly (no AspNetCore extension required)
 builder.Services.AddScoped<IValidator<ExpenseTracker.Dtos.Auth.RegisterRequest>, RegisterRequestValidator>();

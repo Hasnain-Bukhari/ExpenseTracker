@@ -634,23 +634,23 @@ onMounted(async () => {
 <style scoped>
 .transactions-page {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: rgb(var(--v-theme-background));
 }
 
 .v-card {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #757575;
+  color: rgb(var(--v-theme-on-surface-variant));
 }
 
 .empty-state-icon {
   font-size: 80px;
-  color: #bdbdbd;
+  color: rgb(var(--v-theme-on-surface-variant));
+  opacity: 0.6;
 }
 
 .empty-state-title {
