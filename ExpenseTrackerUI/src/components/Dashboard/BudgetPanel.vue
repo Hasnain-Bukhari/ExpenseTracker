@@ -2,8 +2,8 @@
   <v-card class="budget-panel" elevation="2">
     <v-card-title class="d-flex align-center justify-space-between pa-4">
       <div class="d-flex align-center">
-        <v-icon color="primary" class="mr-2">mdi-chart-pie</v-icon>
-        <span class="text-h6 font-weight-medium">Budget Progress</span>
+        <v-icon color="primary" class="mr-2" size="20">mdi-chart-pie</v-icon>
+        <span class="text-body-2 font-weight-medium">Budget Progress</span>
       </div>
       <v-btn
         variant="text"
@@ -29,7 +29,7 @@
       </div>
 
       <div v-else>
-        <div v-for="budget in budgets.slice(0, 10)" :key="budget.budgetId" class="mb-4">
+        <div v-for="(budget, index) in budgets.slice(0, 6)" :key="budget.budgetId" class="mb-4">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-body-2 font-weight-medium">{{ budget.categoryName }}</span>
             <span class="text-caption text-medium-emphasis">{{ budget.percentageUsed }}%</span>
@@ -47,16 +47,18 @@
             <span>${{ formatCurrency(budget.spentAmount) }} / ${{ formatCurrency(budget.allocatedAmount) }}</span>
             <span :class="getStatusTextColor(budget.statusColor)">{{ budget.status }}</span>
           </div>
+          
+          <v-divider v-if="index < budgets.slice(0, 6).length - 1" class="mt-4"></v-divider>
         </div>
 
-        <div v-if="budgets.length > 10" class="text-center mt-3">
+        <div v-if="budgets.length > 6" class="text-center mt-3">
           <v-btn
             variant="text"
             size="small"
             color="primary"
             @click="navigateToBudgets"
           >
-            View {{ budgets.length - 10 }} more budgets
+            View {{ budgets.length - 6 }} more budgets
           </v-btn>
         </div>
       </div>

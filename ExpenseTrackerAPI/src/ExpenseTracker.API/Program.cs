@@ -109,7 +109,7 @@ builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<ITokenService>(sp => sp.GetRequiredService<JwtTokenService>());
 
 builder.Services.AddSingleton<AuthOptions>(new AuthOptions());
-builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+builder.Services.AddScoped<IEmailService, GmailEmailService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(options =>
@@ -133,7 +133,10 @@ builder.Services.AddAuthentication(options =>
 
 // NHibernate configuration (very minimal - replace with proper connection settings)
 var cfg = new Configuration();
-string usedConnectionString = builder.Configuration["CONNECTION_STRING"] ?? "Host=localhost;Port=5432;Database=postgres;Username=hasnainbukhari;Password=;";
+// Read connection string from appsettings: try ConnectionStrings:DefaultConnection first, then CONNECTION_STRING, then fallback
+string usedConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? builder.Configuration["CONNECTION_STRING"] 
+    ?? "Host=localhost;Port=5432;Database=postgres;Username=hasnainbukhari;Password=;";
 cfg.DataBaseIntegration(db =>
 {
     db.ConnectionString = usedConnectionString;

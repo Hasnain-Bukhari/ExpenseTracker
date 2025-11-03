@@ -275,22 +275,27 @@ namespace ExpenseTracker.Repository.Repositories
         {
             using var s = _sf.OpenSession();
             
-            // Get category IDs that match the category type
-            var categoryIds = await s.Query<Category>()
-                .Where(c => c.CategoryType.ToString() == categoryType)
-                .Select(c => c.Id)
-                .ToListAsync();
+            // Query transactions directly with a join to filter by category_type string column
+            // Use SQL to access the category_type column directly since CategoryType is a computed property
+            var sql = @"SELECT COALESCE(SUM(t.amount), 0) as total
+                       FROM transactions t 
+                       INNER JOIN categories c ON t.category_id = c.id
+                       WHERE t.user_id = :userId 
+                       AND t.transaction_date >= :startDate 
+                       AND t.transaction_date <= :endDate 
+                       AND c.category_type = :categoryType";
             
-            if (!categoryIds.Any())
-            {
-                return 0m;
-            }
+            var query = s.CreateSQLQuery(sql)
+                .AddScalar("total", NHibernateUtil.Decimal);
             
-            var total = await s.Query<Transaction>()
-                .Where(t => t.UserId == userId && t.TransactionDate >= startDate && t.TransactionDate <= endDate && categoryIds.Contains(t.CategoryId))
-                .SumAsync(t => (decimal?)t.Amount);
+            query.SetParameter("userId", userId);
+            query.SetParameter("startDate", startDate);
+            query.SetParameter("endDate", endDate);
+            query.SetParameter("categoryType", categoryType);
             
-            return total ?? 0m;
+            var result = await query.UniqueResultAsync<decimal?>();
+            
+            return result ?? 0m;
         }
     }
 }

@@ -20,17 +20,20 @@
         
         <!-- Chart Controls -->
         <div class="chart-controls d-flex align-center mt-3 mt-sm-0">
-          <v-btn-toggle
-            v-model="selectedPeriod"
-            variant="outlined"
-            :size="$vuetify.display.mobile ? 'x-small' : 'small'"
-            density="compact"
-            class="mr-2 mr-sm-3"
-          >
-            <v-btn value="6m" :size="$vuetify.display.mobile ? 'x-small' : 'small'">6M</v-btn>
-            <v-btn value="1y" :size="$vuetify.display.mobile ? 'x-small' : 'small'">1Y</v-btn>
-            <v-btn value="all" :size="$vuetify.display.mobile ? 'x-small' : 'small'">All</v-btn>
-          </v-btn-toggle>
+            <v-btn-toggle
+              v-model="selectedPeriod"
+              variant="outlined"
+              :size="$vuetify.display.mobile ? 'x-small' : 'small'"
+              density="compact"
+              class="mr-2 mr-sm-3"
+            >
+              <v-btn value="1m" :size="$vuetify.display.mobile ? 'x-small' : 'small'">1M</v-btn>
+              <v-btn value="3m" :size="$vuetify.display.mobile ? 'x-small' : 'small'">3M</v-btn>
+              <v-btn value="6m" :size="$vuetify.display.mobile ? 'x-small' : 'small'">6M</v-btn>
+              <v-btn value="1y" :size="$vuetify.display.mobile ? 'x-small' : 'small'">1Y</v-btn>
+              <v-btn value="5y" :size="$vuetify.display.mobile ? 'x-small' : 'small'">5Y</v-btn>
+              <v-btn value="all" :size="$vuetify.display.mobile ? 'x-small' : 'small'">All</v-btn>
+            </v-btn-toggle>
           
           <v-menu offset-y>
             <template v-slot:activator="{ props }">
@@ -170,7 +173,8 @@ const chartInstance = ref<any>(null)
 const spendingData = ref({
   labels: [] as string[],
   expenses: [] as number[],
-  income: [] as number[]
+  income: [] as number[],
+  goals: [] as number[]
 })
 
 const currentMonthSpending = ref(0)
@@ -202,6 +206,19 @@ const chartData = computed(() => {
         tension: 0.4,
         fill: true,
         pointBackgroundColor: 'rgb(15, 118, 110)',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      },
+      {
+        label: 'Goals',
+        data: spendingData.value.goals,
+        borderColor: 'rgb(156, 39, 176)',
+        backgroundColor: 'rgba(156, 39, 176, 0.1)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: 'rgb(156, 39, 176)',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4,
@@ -246,8 +263,13 @@ const loadSpendingData = async () => {
     isLoading.value = true
     
     // Load spending trends for the selected period
-    const trendsData = await transactionService.getSpendingTrends(selectedPeriod.value as '6m' | '1y' | 'all')
-    spendingData.value = trendsData
+    const trendsData = await transactionService.getSpendingTrends(selectedPeriod.value as '1m' | '3m' | '6m' | '1y' | '5y' | 'all')
+    spendingData.value = {
+      labels: trendsData.labels,
+      expenses: trendsData.expenses,
+      income: trendsData.income,
+      goals: trendsData.goals || []
+    }
     
     // Load current month spending
     currentMonthSpending.value = await transactionService.getCurrentMonthSpending()
@@ -276,11 +298,12 @@ const loadSpendingData = async () => {
       }
     }
     
-    const fallbackData = sampleData[selectedPeriod.value as keyof typeof sampleData]
+    const fallbackData = sampleData[selectedPeriod.value as keyof typeof sampleData] || sampleData['1y']
     spendingData.value = {
       labels: fallbackData.labels,
       expenses: fallbackData.expenses,
-      income: fallbackData.income
+      income: fallbackData.income,
+      goals: new Array(fallbackData.labels.length).fill(0)
     }
     currentMonthSpending.value = fallbackData.expenses[fallbackData.expenses.length - 1] || 0
     averageSpending.value = fallbackData.expenses.reduce((sum, val) => sum + val, 0) / fallbackData.expenses.length

@@ -64,98 +64,175 @@
                     Create Goal
                   </v-btn>
                 </div>
-                <div v-else class="row">
-                  <div
-                    v-for="goal in goalProgress"
-                    :key="goal.goalId"
-                    class="col-12 col-md-6 col-lg-4 mb-4"
-                  >
-                    <v-card class="h-100" elevation="2">
-                      <v-card-title class="d-flex align-center justify-space-between">
-                        <span class="text-h6">{{ goal.name }}</span>
-                        <v-chip
-                          :color="goal.priorityColor"
-                          size="small"
-                          :prepend-icon="getPriorityIcon(goal.priority)"
+                <div v-else class="goal-progress-container">
+                  <v-row dense>
+                    <v-col
+                      v-for="goal in goalProgress"
+                      :key="goal.goalId"
+                      cols="12"
+                      md="6"
+                      class="mb-4"
+                    >
+                      <v-card 
+                        class="goal-progress-card h-100" 
+                        elevation="3"
+                        rounded="xl"
+                        variant="outlined"
+                      >
+                        <!-- Card Header with gradient background -->
+                        <v-card-title 
+                          class="goal-card-header pa-4 pb-2"
+                          :style="{ background: `linear-gradient(135deg, rgba(var(--v-theme-${goal.priorityColor}), 0.1) 0%, rgba(var(--v-theme-${goal.priorityColor}), 0.05) 100%)` }"
                         >
-                          {{ getPriorityLabel(goal.priority) }}
-                        </v-chip>
-                      </v-card-title>
-                      
-                      <v-card-subtitle>
-                        <div class="d-flex align-center mb-2">
-                          <v-icon icon="mdi-tag" size="16" class="mr-2" />
-                          {{ goal.categoryName }}
-                        </div>
-                        <div v-if="goal.tag" class="d-flex align-center">
-                          <v-icon icon="mdi-label" size="16" class="mr-2" />
-                          {{ goal.tag }}
-                        </div>
-                      </v-card-subtitle>
+                          <div class="d-flex align-center justify-space-between w-100">
+                            <div class="d-flex align-center flex-grow-1 min-width-0">
+                              <v-avatar
+                                :color="goal.priorityColor"
+                                size="40"
+                                class="mr-3"
+                              >
+                                <v-icon :color="'white'" size="20">
+                                  {{ getPriorityIcon(goal.priority) }}
+                                </v-icon>
+                              </v-avatar>
+                              <div class="flex-grow-1 min-width-0">
+                                <h3 class="text-h6 font-weight-bold mb-1 text-truncate">
+                                  {{ goal.name }}
+                                </h3>
+                                <div class="d-flex align-center text-body-2 text-medium-emphasis">
+                                  <v-icon icon="mdi-tag" size="14" class="mr-1" />
+                                  <span class="text-truncate">{{ goal.categoryName }}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <v-chip
+                              :color="goal.priorityColor"
+                              size="small"
+                              variant="flat"
+                              class="ml-2"
+                            >
+                              {{ getPriorityLabel(goal.priority) }}
+                            </v-chip>
+                          </div>
+                        </v-card-title>
 
-                      <v-card-text>
-                        <!-- Progress Bar -->
-                        <div class="mb-4">
-                          <div class="d-flex justify-space-between mb-2">
-                            <span class="text-sm font-weight-medium">Progress</span>
-                            <span class="text-sm font-weight-bold">{{ goal.percentageComplete }}%</span>
+                        <v-card-text class="pa-4">
+                          <!-- Progress Section -->
+                          <div class="mb-4">
+                            <div class="d-flex justify-space-between align-center mb-3">
+                              <span class="text-body-2 font-weight-medium text-medium-emphasis">Progress</span>
+                              <div class="d-flex align-center">
+                                <span class="text-h6 font-weight-bold mr-1" :class="`text-${goal.priorityColor}`">
+                                  {{ goal.percentageComplete }}%
+                                </span>
+                                <v-chip
+                                  :color="goal.statusColor"
+                                  size="x-small"
+                                  variant="flat"
+                                  class="ml-1"
+                                >
+                                  {{ getStatusLabel(goal.status) }}
+                                </v-chip>
+                              </div>
+                            </div>
+                            <v-progress-linear
+                              :model-value="goal.percentageComplete"
+                              :color="goal.priorityColor"
+                              height="12"
+                              rounded="lg"
+                              class="goal-progress-bar"
+                            >
+                              <template v-slot:default="{ value }">
+                                <div class="progress-text">{{ Math.round(value) }}%</div>
+                              </template>
+                            </v-progress-linear>
                           </div>
-                          <v-progress-linear
-                            :model-value="goal.percentageComplete"
-                            :color="getProgressColor(goal.percentageComplete)"
-                            height="8"
-                            rounded
-                          />
-                        </div>
 
-                        <!-- Amounts -->
-                        <div class="mb-3">
-                          <div class="d-flex justify-space-between mb-1">
-                            <span class="text-sm text-medium-emphasis">Current:</span>
-                            <span class="text-sm font-weight-medium">{{ formatCurrency(goal.currentAmount) }}</span>
-                          </div>
-                          <div class="d-flex justify-space-between mb-1">
-                            <span class="text-sm text-medium-emphasis">Target:</span>
-                            <span class="text-sm font-weight-medium">{{ formatCurrency(goal.targetAmount) }}</span>
-                          </div>
-                          <div class="d-flex justify-space-between">
-                            <span class="text-sm text-medium-emphasis">Remaining:</span>
-                            <span class="text-sm font-weight-medium">{{ formatCurrency(goal.remainingAmount) }}</span>
-                          </div>
-                        </div>
+                          <!-- Amount Cards -->
+                          <v-row dense class="mb-3">
+                            <v-col cols="4">
+                              <v-card 
+                                variant="flat" 
+                                class="text-center pa-3 amount-card"
+                                :style="{ backgroundColor: `rgba(var(--v-theme-${goal.priorityColor}), 0.08)` }"
+                              >
+                                <div class="text-caption text-medium-emphasis mb-1">Current</div>
+                                <div class="text-body-1 font-weight-bold" :class="`text-${goal.priorityColor}`">
+                                  {{ formatCurrency(goal.currentAmount) }}
+                                </div>
+                              </v-card>
+                            </v-col>
+                            <v-col cols="4">
+                              <v-card 
+                                variant="flat" 
+                                class="text-center pa-3 amount-card"
+                                :style="{ backgroundColor: `rgba(var(--v-theme-primary), 0.08)` }"
+                              >
+                                <div class="text-caption text-medium-emphasis mb-1">Target</div>
+                                <div class="text-body-1 font-weight-bold text-primary">
+                                  {{ formatCurrency(goal.targetAmount) }}
+                                </div>
+                              </v-card>
+                            </v-col>
+                            <v-col cols="4">
+                              <v-card 
+                                variant="flat" 
+                                class="text-center pa-3 amount-card"
+                                :style="{ backgroundColor: goal.remainingAmount > 0 ? 'rgba(var(--v-theme-info), 0.08)' : 'rgba(var(--v-theme-success), 0.08)' }"
+                              >
+                                <div class="text-caption text-medium-emphasis mb-1">Remaining</div>
+                                <div 
+                                  class="text-body-1 font-weight-bold"
+                                  :class="goal.remainingAmount > 0 ? 'text-info' : 'text-success'"
+                                >
+                                  {{ formatCurrency(goal.remainingAmount) }}
+                                </div>
+                              </v-card>
+                            </v-col>
+                          </v-row>
 
-                        <!-- Status and Dates -->
-                        <div class="d-flex justify-space-between align-center">
-                          <v-chip
-                            :color="goal.statusColor"
+                          <!-- Footer Info -->
+                          <div class="d-flex justify-space-between align-center">
+                            <div v-if="goal.tag" class="d-flex align-center">
+                              <v-icon icon="mdi-label-outline" size="14" class="mr-1 text-medium-emphasis" />
+                              <span class="text-caption text-medium-emphasis">{{ goal.tag }}</span>
+                            </div>
+                            <div v-else></div>
+                            <div v-if="goal.endDate" class="d-flex align-center">
+                              <v-icon 
+                                :icon="goal.isOverdue ? 'mdi-alert-circle' : 'mdi-calendar-clock'" 
+                                size="14" 
+                                class="mr-1"
+                                :class="goal.isOverdue ? 'text-error' : 'text-medium-emphasis'"
+                              />
+                              <span 
+                                class="text-caption font-weight-medium"
+                                :class="goal.isOverdue ? 'text-error' : 'text-medium-emphasis'"
+                              >
+                                <span v-if="goal.isOverdue">{{ Math.abs(goal.daysRemaining) }} days overdue</span>
+                                <span v-else>{{ goal.daysRemaining }} days left</span>
+                              </span>
+                            </div>
+                          </div>
+                        </v-card-text>
+
+                        <v-divider></v-divider>
+
+                        <v-card-actions class="pa-3">
+                          <v-spacer />
+                          <v-btn
                             size="small"
-                            :prepend-icon="getStatusIcon(goal.status)"
+                            variant="text"
+                            prepend-icon="mdi-pencil"
+                            @click="openEditDialog(goal)"
+                            rounded="lg"
                           >
-                            {{ getStatusLabel(goal.status) }}
-                          </v-chip>
-                          <div v-if="goal.endDate" class="text-xs text-medium-emphasis">
-                            <div v-if="goal.isOverdue" class="text-error">
-                              {{ Math.abs(goal.daysRemaining) }} days overdue
-                            </div>
-                            <div v-else>
-                              {{ goal.daysRemaining }} days left
-                            </div>
-                          </div>
-                        </div>
-                      </v-card-text>
-
-                      <v-card-actions>
-                        <v-spacer />
-                        <v-btn
-                          size="small"
-                          variant="text"
-                          @click="openEditDialog(goal)"
-                        >
-                          Edit
-                        </v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </div>
+                            Edit
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
                 </div>
               </v-window-item>
 
@@ -541,14 +618,35 @@ const loadCompletedGoals = async () => {
 const loadSavingsCategories = async () => {
   try {
     const categories = await categoryService.list()
-    savingsCategories.value = categories.filter((cat: CategoryDto) => cat.categoryType === 'TargetedSavingsGoal')
+    const allSavingsCategories = categories.filter((cat: CategoryDto) => cat.categoryType === 'TargetedSavingsGoal')
+    
+    // Get active goals to filter out categories that already have active goals
+    const activeGoalsList = await goalService.getActive()
+    const activeCategoryIds = new Set(activeGoalsList.map(goal => goal.categoryId))
+    
+    // Filter out categories that already have active goals (unless we're editing that goal)
+    if (isEditing.value && 'id' in editingGoal.value && editingGoal.value.id) {
+      const goalId = editingGoal.value.id
+      const currentGoal = activeGoalsList.find(g => g.id === goalId)
+      if (currentGoal) {
+        // Allow the current goal's category
+        savingsCategories.value = allSavingsCategories.filter(cat => 
+          !activeCategoryIds.has(cat.id) || cat.id === currentGoal.categoryId
+        )
+      } else {
+        savingsCategories.value = allSavingsCategories.filter(cat => !activeCategoryIds.has(cat.id))
+      }
+    } else {
+      // Creating new goal - exclude all categories with active goals
+      savingsCategories.value = allSavingsCategories.filter(cat => !activeCategoryIds.has(cat.id))
+    }
   } catch (error) {
     console.error('Failed to load categories:', error)
     savingsCategories.value = []
   }
 }
 
-const openCreateDialog = () => {
+const openCreateDialog = async () => {
   isEditing.value = false
   editingGoal.value = {
     name: '',
@@ -562,10 +660,12 @@ const openCreateDialog = () => {
     status: GoalStatus.Active,
     priority: GoalPriority.Medium
   }
+  // Reload categories to filter out those with active goals
+  await loadSavingsCategories()
   dialogOpen.value = true
 }
 
-const openEditDialog = (goal: GoalDto | GoalProgressDto) => {
+const openEditDialog = async (goal: GoalDto | GoalProgressDto) => {
   isEditing.value = true
   editingGoal.value = {
     id: 'goalId' in goal ? goal.goalId : goal.id,
@@ -580,6 +680,8 @@ const openEditDialog = (goal: GoalDto | GoalProgressDto) => {
     status: goal.status,
     priority: goal.priority
   }
+  // Reload categories to filter out those with active goals (allowing current goal's category)
+  await loadSavingsCategories()
   dialogOpen.value = true
 }
 
@@ -710,3 +812,63 @@ onMounted(() => {
   loadData()
 })
 </script>
+
+<style scoped>
+.goal-progress-container {
+  padding: 8px 0;
+}
+
+.goal-progress-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--v-theme-outline), 0.12);
+}
+
+.goal-progress-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(var(--v-theme-primary), 0.15) !important;
+  border-color: rgba(var(--v-theme-primary), 0.3);
+}
+
+.goal-card-header {
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.12);
+}
+
+.goal-progress-bar {
+  position: relative;
+  overflow: visible;
+}
+
+.goal-progress-bar :deep(.v-progress-linear__content) {
+  position: relative;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.amount-card {
+  transition: all 0.2s ease;
+  border: 1px solid rgba(var(--v-theme-outline), 0.08);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.amount-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.1);
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+</style>

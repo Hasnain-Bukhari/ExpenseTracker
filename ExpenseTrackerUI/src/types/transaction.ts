@@ -5,7 +5,7 @@ import { CategoryType } from './category'
 export interface CreateTransactionDto {
   accountId: string
   categoryId: string
-  subCategoryId: string
+  subCategoryId?: string | null
   description?: string | null
   amount: number
   transactionDate: string
@@ -15,7 +15,7 @@ export interface UpdateTransactionDto {
   id: string
   accountId: string
   categoryId: string
-  subCategoryId: string
+  subCategoryId?: string | null
   description?: string | null
   amount: number
   transactionDate: string

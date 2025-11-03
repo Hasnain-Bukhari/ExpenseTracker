@@ -1,7 +1,7 @@
 <template>
   <AuthCard
     title="Set New Password"
-    subtitle="Create a strong password for your account"
+    :subtitle="resetEmail ? `Create a strong password for ${resetEmail}` : 'Create a strong password for your account'"
     :max-width="400"
   >
     <!-- Success State -->
@@ -129,12 +129,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockResetPassword } from '@/data/mockAuth'
+import { useToast } from 'vue-toastification'
+import { useAuth } from '@/composables/useAuth'
 import AuthCard from '@/components/auth/AuthCard.vue'
 import PasswordField from '@/components/auth/PasswordField.vue'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
+const { resetPassword } = useAuth()
 
 // Form state
 const formRef = ref()
@@ -151,8 +154,9 @@ const passwordError = ref('')
 const confirmPasswordError = ref('')
 const isValidToken = ref(true)
 
-// Get token from route query
-const resetToken = computed(() => route.query.token as string)
+// Get token and email from route query
+const resetToken = computed(() => (route.query.token as string) || '')
+const resetEmail = computed(() => (route.query.email as string) || '')
 
 // Form validation
 const validatePassword = () => {
@@ -200,19 +204,24 @@ const handleSubmit = async () => {
   error.value = ''
   
   try {
-    const result = await mockResetPassword({
+    const result = await resetPassword({
       token: resetToken.value,
       newPassword: form.newPassword,
       confirmPassword: form.confirmPassword
     })
     
-    if (result.ok) {
+    if (result && (result.ok || result.success)) {
       passwordReset.value = true
+      toast.success('Password has been reset successfully!')
     } else {
-      error.value = result.error || 'Failed to reset password'
+      const errorMsg = (result as any)?.error || (result as any)?.message || 'Failed to reset password'
+      error.value = errorMsg
+      toast.error(errorMsg)
     }
-  } catch (err) {
-    error.value = 'Network error occurred'
+  } catch (err: any) {
+    const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Network error occurred'
+    error.value = errorMsg
+    toast.error(errorMsg)
   } finally {
     isLoading.value = false
   }
@@ -220,8 +229,12 @@ const handleSubmit = async () => {
 
 // Validate token on mount
 onMounted(() => {
-  if (!resetToken.value || !resetToken.value.startsWith('reset_')) {
+  if (!resetToken.value) {
     isValidToken.value = false
+    error.value = 'Reset token is missing. Please use the link from your email.'
+  } else if (resetToken.value.length < 10) {
+    isValidToken.value = false
+    error.value = 'Invalid reset token format.'
   }
 })
 </script>

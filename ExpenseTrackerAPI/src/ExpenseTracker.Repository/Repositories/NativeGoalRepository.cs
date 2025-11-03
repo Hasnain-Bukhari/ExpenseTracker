@@ -185,6 +185,27 @@ namespace ExpenseTracker.Repository.Repositories
             };
         }
 
+        public async Task<bool> HasActiveGoalAsync(Guid userId, Guid categoryId)
+        {
+            using var s = _sf.OpenSession();
+            return await s.Query<Goal>()
+                .Where(g => g.UserId == userId)
+                .Where(g => g.CategoryId == categoryId)
+                .Where(g => g.GoalStatusString == "Active")
+                .AnyAsync();
+        }
+
+        public async Task<bool> HasActiveGoalForCategoryExcludingAsync(Guid userId, Guid categoryId, Guid excludeGoalId)
+        {
+            using var s = _sf.OpenSession();
+            return await s.Query<Goal>()
+                .Where(g => g.UserId == userId)
+                .Where(g => g.CategoryId == categoryId)
+                .Where(g => g.Id != excludeGoalId)
+                .Where(g => g.GoalStatusString == "Active")
+                .AnyAsync();
+        }
+
         private string GetPriorityColor(ExpenseTracker.Dtos.Models.GoalPriority priority)
         {
             return priority switch

@@ -203,17 +203,61 @@ namespace ExpenseTracker.Service.Services.Auth
 
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
             var hash = _tokenService.HashRefreshToken(token);
-            var pr = new PasswordResetToken(Guid.NewGuid(), user.Id, hash, DateTimeOffset.UtcNow.AddHours(_options.ResetHours), false, DateTimeOffset.UtcNow);
+            var pr = new PasswordResetToken(Guid.NewGuid(), user.Id, hash, DateTime.UtcNow.AddHours(_options.ResetHours), false, DateTime.UtcNow);
             await _passwordResetRepo.CreateAsync(pr);
             await _emailService.SendPasswordResetAsync(user, token);
         }
 
         public async Task ResetPasswordAsync(ResetPasswordRequest request)
         {
+            // Handle token lookup - tokens can come from different sources:
+            // 1. JSON body (already decoded by JSON parser)
+            // 2. URL query parameter (might be URL-encoded)
+            // Try token as-is first, then try decoded versions
+            
             var hash = _tokenService.HashRefreshToken(request.Token);
             var existing = await _passwordResetRepo.GetByTokenHashAsync(hash);
-            if (existing == null) throw new InvalidOperationException("Invalid token");
-            if (existing.ExpiresAt < DateTimeOffset.UtcNow || existing.Used) throw new InvalidOperationException("Invalid token");
+            
+            // If not found, try decoding the token (it might be URL-encoded)
+            if (existing == null)
+            {
+                // Try Uri.UnescapeDataString (preserves + as +, not space - important for base64)
+                try
+                {
+                    var decodedToken = Uri.UnescapeDataString(request.Token);
+                    if (decodedToken != request.Token)
+                    {
+                        var decodedHash = _tokenService.HashRefreshToken(decodedToken);
+                        existing = await _passwordResetRepo.GetByTokenHashAsync(decodedHash);
+                    }
+                }
+                catch
+                {
+                    // Ignore decoding errors
+                }
+            }
+            
+            // If still not found and token contains %XX encoding, try WebUtility.UrlDecode
+            if (existing == null && request.Token.Contains('%'))
+            {
+                try
+                {
+                    var webDecoded = System.Net.WebUtility.UrlDecode(request.Token);
+                    // Only use if it's different and doesn't contain spaces (which would break base64)
+                    if (webDecoded != request.Token && !webDecoded.Contains(' '))
+                    {
+                        var webDecodedHash = _tokenService.HashRefreshToken(webDecoded);
+                        existing = await _passwordResetRepo.GetByTokenHashAsync(webDecodedHash);
+                    }
+                }
+                catch
+                {
+                    // Ignore decoding errors
+                }
+            }
+            
+            if (existing == null) throw new InvalidOperationException("Invalid or expired token");
+            if (existing.ExpiresAt < DateTimeOffset.UtcNow || existing.Used) throw new InvalidOperationException("Invalid or expired token");
 
             var user = await _userRepo.GetByIdAsync(existing.UserId);
             if (user == null) throw new InvalidOperationException("Invalid token");

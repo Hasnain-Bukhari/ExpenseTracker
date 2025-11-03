@@ -37,6 +37,12 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
+      path: '/reset-password',
+      name: 'reset-password-alt',
+      component: () => import('@/views/auth/ResetPasswordView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('@/views/AboutView.vue'),

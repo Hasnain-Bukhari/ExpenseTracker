@@ -82,7 +82,21 @@
               </v-col>
               <v-col cols="6" sm="3">
                 <div class="quick-stat text-center">
-                  <p class="text-caption text-secondary mb-1">Spending vs Budget</p>
+                  <div class="d-flex align-center justify-center">
+                    <p class="text-caption text-secondary mb-1">Spending vs Budget</p>
+                    <v-tooltip location="top">
+                      <template v-slot:activator="{ props }">
+                        <v-icon 
+                          v-bind="props"
+                          icon="mdi-information-outline" 
+                          size="14" 
+                          color="secondary"
+                          class="ml-1 mb-1"
+                        ></v-icon>
+                      </template>
+                      <span>Score based on remaining budget percentage. Higher score means more budget remaining. Calculated as: (Budget - Spent) / Budget × 100</span>
+                    </v-tooltip>
+                  </div>
                   <p class="text-h6 font-weight-bold mb-0" :class="getBudgetScoreColor(spendingVsBudgetScore)">{{ spendingVsBudgetScore }}</p>
                 </div>
               </v-col>
@@ -120,40 +134,21 @@
           </v-row>
         </div>
 
-        <!-- Calendar Panel -->
+        <!-- Calendar and Recent Transactions Row -->
         <div 
-          class="calendar-section mb-8"
+          class="calendar-transactions-section mb-8"
           v-motion
           :initial="{ opacity: 0, y: 20 }"
           :enter="{ opacity: 1, y: 0, transition: { delay: 500, duration: 500 } }"
         >
           <v-row>
-            <v-col cols="12" md="6">
-              <CalendarPanel />
+            <v-col cols="12" md="6" class="d-flex">
+              <CalendarPanel class="flex-grow-1" />
             </v-col>
-            <v-col cols="12" md="6">
-              <!-- Placeholder for second panel -->
-              <v-card class="dashboard-card glass-card" style="height: 400px;">
-                <v-card-text class="d-flex align-center justify-center h-100">
-                  <div class="text-center">
-                    <v-icon icon="mdi-plus" size="48" color="primary" class="mb-4"></v-icon>
-                    <h3 class="text-h6 mb-2">Add Another Panel</h3>
-                    <p class="text-body-2 text-secondary">Space for additional dashboard content</p>
-                  </div>
-                </v-card-text>
-              </v-card>
+            <v-col cols="12" md="6" class="d-flex">
+              <RecentTransactions class="flex-grow-1" />
             </v-col>
           </v-row>
-        </div>
-
-        <!-- Recent Transactions -->
-        <div 
-          class="transactions-section"
-          v-motion
-          :initial="{ opacity: 0, y: 20 }"
-          :enter="{ opacity: 1, y: 0, transition: { delay: 600, duration: 500 } }"
-        >
-          <RecentTransactions />
         </div>
 
         <!-- Floating Action Button (Mobile) -->

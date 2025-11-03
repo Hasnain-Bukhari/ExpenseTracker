@@ -1,193 +1,192 @@
 <template>
   <v-card class="goals-card dashboard-card">
     <!-- Card Header -->
-    <v-card-title class="goals-header pa-4 pa-sm-6 pb-4">
-      <div class="header-content w-100 d-flex align-center justify-space-between">
-        <div class="header-main d-flex align-center">
-          <v-avatar 
-            :size="$vuetify.display.mobile ? 36 : 40" 
-            color="primary" 
-            variant="tonal"
-            class="mr-3"
-          >
-            <v-icon icon="mdi-target" :size="$vuetify.display.mobile ? 18 : 20" />
-          </v-avatar>
-          <div class="header-text">
-            <h3 class="text-body-1 text-sm-h6 font-weight-bold mb-0">Financial Goals</h3>
-            <p class="text-caption text-sm-body-2 text-secondary mb-0 d-none d-sm-block">Track your progress</p>
-          </div>
-        </div>
-        
-        <v-btn
-          variant="text"
-          :size="$vuetify.display.mobile ? 'x-small' : 'small'"
-          color="primary"
-          @click="viewAllGoals"
-        >
-          <span :class="$vuetify.display.mobile ? 'text-caption' : 'text-body-2'">View All</span>
-        </v-btn>
+    <v-card-title class="d-flex align-center justify-space-between pa-4">
+      <div class="d-flex align-center">
+        <v-icon color="primary" class="mr-2" size="20">mdi-target</v-icon>
+        <span class="text-body-2 font-weight-medium">Financial Goals</span>
       </div>
+      <v-btn
+        variant="text"
+        size="small"
+        color="primary"
+        @click="viewAllGoals"
+      >
+        View All
+        <v-icon right>mdi-arrow-right</v-icon>
+      </v-btn>
     </v-card-title>
 
     <!-- Goals List -->
     <v-card-text class="pa-0">
-      <div class="goals-container pa-3 pa-sm-6 pt-0">
-        <div v-if="isLoading" class="text-center py-8">
-          <v-progress-circular indeterminate color="primary" size="32" />
-          <p class="mt-2 text-caption text-medium-emphasis">Loading goals...</p>
-        </div>
-        
-        <div
-          v-else-if="goals.length > 0"
-          v-for="(goal, index) in goals.slice(0, 3)"
-          :key="goal.goalId"
-          class="goal-item"
-          v-motion
-          :initial="{ opacity: 0, x: -20 }"
-          :enter="{ 
-            opacity: 1, 
-            x: 0, 
-            transition: { 
-              delay: index * 100,
-              type: 'spring',
-              stiffness: 200
-            } 
-          }"
-        >
-          <!-- Goal Header -->
-          <div class="goal-header d-flex align-center justify-space-between mb-3">
-            <div class="goal-info flex-grow-1">
-              <div class="d-flex align-center mb-1">
-                <h4 class="goal-title text-subtitle-1 font-weight-semibold mr-2">
-                  {{ goal.name }}
-                </h4>
+      <div v-if="isLoading" class="text-center py-6">
+        <v-progress-circular indeterminate color="primary" size="32"></v-progress-circular>
+        <p class="text-caption text-medium-emphasis mt-2">Loading goals...</p>
+      </div>
+
+      <div v-else-if="goals.length === 0" class="text-center py-6">
+        <v-icon size="48" color="grey-lighten-1" class="mb-2">mdi-target-outline</v-icon>
+        <p class="text-body-2 text-medium-emphasis mb-2">No active goals</p>
+        <p class="text-caption text-medium-emphasis">Create your first goal to track progress</p>
+      </div>
+
+      <div v-else class="goals-list">
+        <div v-for="goal in goals.slice(0, 2)" :key="goal.goalId" class="goal-item mb-3">
+          <!-- Goal Card with Gradient Header -->
+          <v-card 
+            class="goal-progress-card" 
+            elevation="2"
+            rounded="lg"
+            variant="outlined"
+          >
+            <!-- Card Header with gradient background -->
+            <v-card-title 
+              class="goal-card-header pa-3 pb-2"
+              :style="{ background: `linear-gradient(135deg, rgba(var(--v-theme-${goal.priorityColor}), 0.1) 0%, rgba(var(--v-theme-${goal.priorityColor}), 0.05) 100%)` }"
+            >
+              <div class="d-flex align-center justify-space-between w-100">
+                <div class="d-flex align-center flex-grow-1 min-width-0">
+                  <v-avatar
+                    :color="goal.priorityColor"
+                    size="32"
+                    class="mr-2"
+                  >
+                    <v-icon :color="'white'" size="16">
+                      {{ getPriorityIcon(goal.priority) }}
+                    </v-icon>
+                  </v-avatar>
+                  <div class="flex-grow-1 min-width-0">
+                    <h3 class="text-body-2 font-weight-bold mb-0 text-truncate">
+                      {{ goal.name }}
+                    </h3>
+                    <div class="d-flex align-center text-caption text-medium-emphasis">
+                      <v-icon icon="mdi-tag" size="12" class="mr-1" />
+                      <span class="text-truncate">{{ goal.categoryName }}</span>
+                    </div>
+                  </div>
+                </div>
                 <v-chip
-                  :color="getPriorityColor(goal.priority)"
+                  :color="goal.priorityColor"
                   size="x-small"
-                  variant="tonal"
-                  class="priority-chip"
+                  variant="flat"
+                  class="ml-2"
                 >
                   {{ getPriorityLabel(goal.priority) }}
                 </v-chip>
               </div>
-              
-              <div class="goal-amounts d-flex align-center">
-                <span class="current-amount text-h6 font-weight-bold text-primary mr-2">
-                  {{ formatCurrency(goal.currentAmount) }}
-                </span>
-                <span class="amount-separator text-body-2 text-tertiary mr-2">of</span>
-                <span class="target-amount text-body-2 font-weight-medium text-secondary">
-                  {{ formatCurrency(goal.targetAmount) }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Goal Actions -->
-            <div class="goal-actions">
-              <v-btn
-                icon
-                size="small"
-                variant="text"
-                @click="quickAddToGoal(goal.goalId)"
-                class="action-btn"
-              >
-                <v-icon size="16">mdi-plus</v-icon>
-                <v-tooltip activator="parent" location="top">
-                  Quick Add
-                </v-tooltip>
-              </v-btn>
-            </div>
-          </div>
+            </v-card-title>
 
-          <!-- Progress Section -->
-          <div class="progress-section mb-3">
-            <!-- Progress Bar -->
-            <div class="progress-container mb-2">
-              <v-progress-linear
-                :model-value="goal.percentageComplete"
-                :color="getProgressColor(goal.percentageComplete)"
-                height="12"
-                rounded
-                class="progress-bar"
-                :class="{ 'progress-animated': isAnimating }"
-              >
-                <template v-slot:default>
-                  <div class="progress-content d-flex align-center justify-center h-100">
-                    <span class="progress-text text-caption font-weight-medium">
+            <v-card-text class="pa-3">
+              <!-- Progress Section -->
+              <div class="mb-3">
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <span class="text-caption font-weight-medium text-medium-emphasis">Progress</span>
+                  <div class="d-flex align-center">
+                    <span class="text-body-2 font-weight-bold mr-1" :class="`text-${goal.priorityColor}`">
                       {{ goal.percentageComplete }}%
                     </span>
+                    <v-chip
+                      :color="goal.statusColor"
+                      size="x-small"
+                      variant="flat"
+                    >
+                      {{ getStatusLabel(goal.status) }}
+                    </v-chip>
                   </div>
-                </template>
-              </v-progress-linear>
-            </div>
-            
-            <!-- Progress Details -->
-            <div class="progress-details d-flex justify-space-between align-center">
-              <div class="progress-stats">
-                <span class="text-body-2 text-secondary">
-                  {{ goal.percentageComplete }}% complete
-                </span>
-                <span class="remaining-amount text-caption text-tertiary ml-2">
-                  ({{ formatCurrency(goal.remainingAmount) }} remaining)
-                </span>
-              </div>
-              
-              <div v-if="goal.endDate" class="deadline-info d-flex align-center">
-                <v-icon 
-                  :color="getDeadlineUrgency(goal.endDate)"
-                  size="14" 
-                  class="mr-1"
+                </div>
+                <v-progress-linear
+                  :model-value="goal.percentageComplete"
+                  :color="goal.priorityColor"
+                  height="10"
+                  rounded="lg"
+                  class="goal-progress-bar"
                 >
-                  mdi-calendar-clock
-                </v-icon>
-                <span 
-                  :class="`text-caption text-${getDeadlineUrgency(goal.endDate)}`"
-                >
-                  {{ formatDateShort(goal.endDate) }}
-                </span>
+                  <template v-slot:default="{ value }">
+                    <div class="progress-text">{{ Math.round(value) }}%</div>
+                  </template>
+                </v-progress-linear>
               </div>
-            </div>
-          </div>
 
-          <!-- Goal Category & Status -->
-          <div class="goal-footer d-flex align-center justify-space-between">
-            <div class="goal-category">
-              <v-chip
-                size="small"
-                variant="outlined"
-                class="category-chip"
-              >
-                <v-icon start size="12">mdi-tag-outline</v-icon>
-                {{ goal.categoryName }}
-              </v-chip>
-            </div>
-            
-            <div class="goal-status">
-              <v-chip
-                :color="goal.statusColor"
-                size="small"
-                variant="tonal"
-                class="status-chip"
-              >
-                {{ getStatusText(goal.percentageComplete) }}
-              </v-chip>
-            </div>
-          </div>
+              <!-- Amount Cards -->
+              <v-row dense class="mb-2">
+                <v-col cols="4" class="pa-1">
+                  <v-card 
+                    variant="flat" 
+                    class="text-center pa-2 amount-card"
+                    :style="{ backgroundColor: `rgba(var(--v-theme-${goal.priorityColor}), 0.08)` }"
+                  >
+                    <div class="text-caption text-medium-emphasis mb-1">Current</div>
+                    <div class="text-body-2 font-weight-bold" :class="`text-${goal.priorityColor}`">
+                      {{ formatCurrencyCompact(goal.currentAmount) }}
+                    </div>
+                  </v-card>
+                </v-col>
+                <v-col cols="4" class="pa-1">
+                  <v-card 
+                    variant="flat" 
+                    class="text-center pa-2 amount-card"
+                    :style="{ backgroundColor: `rgba(var(--v-theme-primary), 0.08)` }"
+                  >
+                    <div class="text-caption text-medium-emphasis mb-1">Target</div>
+                    <div class="text-body-2 font-weight-bold text-primary">
+                      {{ formatCurrencyCompact(goal.targetAmount) }}
+                    </div>
+                  </v-card>
+                </v-col>
+                <v-col cols="4" class="pa-1">
+                  <v-card 
+                    variant="flat" 
+                    class="text-center pa-2 amount-card"
+                    :style="{ backgroundColor: goal.remainingAmount > 0 ? 'rgba(var(--v-theme-info), 0.08)' : 'rgba(var(--v-theme-success), 0.08)' }"
+                  >
+                    <div class="text-caption text-medium-emphasis mb-1">Left</div>
+                    <div 
+                      class="text-body-2 font-weight-bold"
+                      :class="goal.remainingAmount > 0 ? 'text-info' : 'text-success'"
+                    >
+                      {{ formatCurrencyCompact(goal.remainingAmount) }}
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <!-- Footer Info -->
+              <div v-if="goal.endDate || goal.tag" class="d-flex justify-space-between align-center mt-2">
+                <div v-if="goal.tag" class="d-flex align-center">
+                  <v-icon icon="mdi-label-outline" size="12" class="mr-1 text-medium-emphasis" />
+                  <span class="text-caption text-medium-emphasis">{{ goal.tag }}</span>
+                </div>
+                <div v-else></div>
+                <div v-if="goal.endDate" class="d-flex align-center">
+                  <v-icon 
+                    :icon="goal.isOverdue ? 'mdi-alert-circle' : 'mdi-calendar-clock'" 
+                    size="12" 
+                    class="mr-1"
+                    :class="goal.isOverdue ? 'text-error' : 'text-medium-emphasis'"
+                  />
+                  <span 
+                    class="text-caption font-weight-medium"
+                    :class="goal.isOverdue ? 'text-error' : 'text-medium-emphasis'"
+                  >
+                    <span v-if="goal.isOverdue">{{ Math.abs(goal.daysRemaining) }}d overdue</span>
+                    <span v-else>{{ goal.daysRemaining }}d left</span>
+                  </span>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
         </div>
 
-        <!-- Empty State -->
-        <div v-else class="empty-state text-center py-8">
-          <v-icon size="64" color="primary" class="mb-4">mdi-target</v-icon>
-          <h3 class="text-h6 font-weight-medium mb-2">No Goals Yet</h3>
-          <p class="text-body-2 text-secondary mb-4">
-            Set your first financial goal to start tracking your progress
-          </p>
-          <v-btn color="primary" @click="addNewGoal">
-            <v-icon start>mdi-plus</v-icon>
-            Add Your First Goal
+        <div v-if="goals.length > 2" class="text-center mt-3 pa-3">
+          <v-btn
+            variant="text"
+            size="small"
+            color="primary"
+            @click="viewAllGoals"
+          >
+            View {{ goals.length - 2 }} more goals
           </v-btn>
         </div>
-
       </div>
     </v-card-text>
   </v-card>
@@ -198,13 +197,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { goalService } from '@/lib/goalService'
-import { formatCurrency, formatDateShort } from '@/utils/formatters'
-import type { GoalProgressDto, GoalPriority } from '@/types/goal'
-import { getGoalPriorityLabel, getGoalPriorityColor } from '@/types/goal'
+import { formatCurrency } from '@/utils/formatters'
+import type { GoalProgressDto } from '@/types/goal'
+import { GoalPriority, GoalStatus, getGoalPriorityLabel } from '@/types/goal'
 
 const router = useRouter()
 const toast = useToast()
-const isAnimating = ref(true)
 const isLoading = ref(false)
 const goals = ref<GoalProgressDto[]>([])
 
@@ -222,61 +220,113 @@ const loadGoals = async () => {
   }
 }
 
-const getProgressColor = (percentage: number): string => {
-  if (percentage >= 90) return 'success'
-  if (percentage >= 70) return 'primary'
-  if (percentage >= 40) return 'warning'
-  return 'error'
-}
-
-const getPriorityColor = (priority: GoalPriority): string => {
-  return getGoalPriorityColor(priority)
+// Helper functions
+const getPriorityIcon = (priority: GoalPriority) => {
+  switch (priority) {
+    case GoalPriority.Low: return 'mdi-arrow-down'
+    case GoalPriority.Medium: return 'mdi-minus'
+    case GoalPriority.High: return 'mdi-arrow-up'
+    default: return 'mdi-help'
+  }
 }
 
 const getPriorityLabel = (priority: GoalPriority): string => {
   return getGoalPriorityLabel(priority)
 }
 
-// Status helpers
-const getStatusText = (percentage: number): string => {
-  if (percentage >= 100) return 'Completed'
-  if (percentage >= 75) return 'Nearly There'
-  if (percentage >= 50) return 'On Track'
-  if (percentage >= 25) return 'Getting Started'
-  return 'Just Started'
+const getStatusLabel = (status: GoalStatus): string => {
+  switch (status) {
+    case GoalStatus.Active: return 'Active'
+    case GoalStatus.Paused: return 'Paused'
+    case GoalStatus.Completed: return 'Completed'
+    case GoalStatus.Cancelled: return 'Cancelled'
+    default: return 'Unknown'
+  }
 }
 
-// Deadline helpers
-const getDeadlineUrgency = (deadline: string): string => {
-  const deadlineDate = new Date(deadline)
-  const today = new Date()
-  const daysUntilDeadline = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  
-  if (daysUntilDeadline < 0) return 'error'
-  if (daysUntilDeadline <= 30) return 'warning'
-  if (daysUntilDeadline <= 90) return 'primary'
-  return 'success'
+const formatCurrencyCompact = (amount: number): string => {
+  if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1)}M`
+  } else if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(1)}K`
+  }
+  return formatCurrency(amount)
 }
 
 // Actions
-const addNewGoal = () => {
-  router.push('/goals')
-}
-
 const viewAllGoals = () => {
   router.push('/goals')
 }
 
-const quickAddToGoal = (goalId: string) => {
-  // TODO: Open quick add modal
-  console.log('Quick add to goal:', goalId)
-}
-
 onMounted(() => {
   loadGoals()
-  // Start animation after component mounts
-  setTimeout(() => {
-    isAnimating.value = false
-  }, 2000)
 })
 </script>
+
+<style scoped>
+.goals-card {
+  height: 100%;
+}
+
+.goals-card .v-card-title {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.goals-list {
+  padding: 8px;
+}
+
+.goal-progress-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--v-theme-outline), 0.12);
+}
+
+.goal-progress-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(var(--v-theme-primary), 0.15) !important;
+  border-color: rgba(var(--v-theme-primary), 0.3);
+}
+
+.goal-card-header {
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.08);
+}
+
+.goal-progress-bar {
+  position: relative;
+  overflow: visible;
+}
+
+.goal-progress-bar :deep(.v-progress-linear__content) {
+  position: relative;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.amount-card {
+  transition: all 0.2s ease;
+  border: 1px solid rgba(var(--v-theme-outline), 0.06);
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.amount-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.1);
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+</style>

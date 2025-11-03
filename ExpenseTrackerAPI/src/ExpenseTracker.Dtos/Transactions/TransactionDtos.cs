@@ -10,7 +10,7 @@ namespace ExpenseTracker.Dtos.Transactions
     public record CreateTransactionDto(
         Guid AccountId,
         Guid CategoryId,
-        Guid SubCategoryId,
+        Guid? SubCategoryId,
         string? Description,
         decimal Amount,
         DateTime TransactionDate
@@ -20,7 +20,7 @@ namespace ExpenseTracker.Dtos.Transactions
         Guid Id,
         Guid AccountId,
         Guid CategoryId,
-        Guid SubCategoryId,
+        Guid? SubCategoryId,
         string? Description,
         decimal Amount,
         DateTime TransactionDate

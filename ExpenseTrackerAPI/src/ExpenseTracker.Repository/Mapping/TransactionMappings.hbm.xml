@@ -7,7 +7,7 @@
     <property name="UserId" column="user_id" />
     <property name="AccountId" column="account_id" />
     <property name="CategoryId" column="category_id" />
-    <property name="SubCategoryId" column="sub_category_id" />
+    <property name="SubCategoryId" column="sub_category_id" type="Guid" not-null="false" />
     <property name="Description" column="description" />
     <property name="Amount" column="amount" />
     <property name="TransactionDate" column="transaction_date" />

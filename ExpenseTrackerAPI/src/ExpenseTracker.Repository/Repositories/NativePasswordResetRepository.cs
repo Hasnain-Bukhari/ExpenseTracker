@@ -2,6 +2,9 @@ using System;
 using System.Threading.Tasks;
 using NHibernate;
 using NHibernate.Linq;
+using NHibernate.Criterion;
+using NHibernate.SqlTypes;
+using NHibernate.Type;
 using ExpenseTracker.Dtos.Models;
 
 namespace ExpenseTracker.Repository.Repositories
@@ -26,7 +29,32 @@ namespace ExpenseTracker.Repository.Repositories
         public async Task<PasswordResetToken?> GetByTokenHashAsync(string tokenHash)
         {
             using var session = _sessionFactory.OpenSession();
-            return await session.Query<PasswordResetToken>().FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
+            // Use direct SQL query with manual mapping to avoid NHibernate translation issues
+            var sql = @"SELECT id, user_id, token_hash, expires_at, used, created_at 
+                       FROM password_reset_tokens 
+                       WHERE token_hash = :tokenHash 
+                       LIMIT 1";
+            
+            var query = session.CreateSQLQuery(sql);
+            query.SetParameter("tokenHash", tokenHash);
+            
+            var result = await query.ListAsync();
+            
+            if (result == null || result.Count == 0)
+                return null;
+            
+            var row = result[0] as object[];
+            if (row == null || row.Length < 6)
+                return null;
+            
+            return new PasswordResetToken(
+                (Guid)row[0],              // id
+                (Guid)row[1],              // user_id
+                (string)row[2],            // token_hash
+                (DateTime)row[3],     // expires_at
+                (bool)row[4],              // used
+                (DateTime)row[5]     // created_at
+            );
         }
 
         public async Task MarkUsedAsync(Guid id)

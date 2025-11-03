@@ -5,6 +5,7 @@ export interface SpendingTrendData {
   labels: string[]
   expenses: number[]
   income: number[]
+  goals?: number[]
 }
 
 export interface MonthlySpending {
@@ -15,13 +16,21 @@ export interface MonthlySpending {
 
 export const transactionService = {
   // Get spending trends for different periods
-  async getSpendingTrends(period: '6m' | '1y' | 'all'): Promise<SpendingTrendData> {
+  async getSpendingTrends(period: '1m' | '3m' | '6m' | '1y' | '5y' | 'all'): Promise<SpendingTrendData> {
     const now = new Date()
     let startDate: Date
     let labels: string[]
     let groupBy: 'month' | 'quarter' = 'month'
 
     switch (period) {
+      case '1m':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        labels = this.generateMonthLabels(1)
+        break
+      case '3m':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+        labels = this.generateMonthLabels(3)
+        break
       case '6m':
         startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1)
         labels = this.generateMonthLabels(6)
@@ -29,6 +38,11 @@ export const transactionService = {
       case '1y':
         startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1)
         labels = this.generateMonthLabels(12)
+        break
+      case '5y':
+        startDate = new Date(now.getFullYear() - 5, now.getMonth(), 1)
+        labels = this.generateYearLabels(5)
+        groupBy = 'quarter'
         break
       case 'all':
         startDate = new Date(2023, 0, 1) // Start from 2023
@@ -58,7 +72,8 @@ export const transactionService = {
       return {
         labels,
         expenses: groupedData.expenses,
-        income: groupedData.income
+        income: groupedData.income,
+        goals: groupedData.goals
       }
     } catch (error) {
       console.error('Failed to fetch spending trends:', error)
@@ -101,10 +116,24 @@ export const transactionService = {
     return labels
   },
 
+  // Generate year labels for the last N years
+  generateYearLabels(years: number): string[] {
+    const labels: string[] = []
+    const now = new Date()
+    
+    for (let i = years - 1; i >= 0; i--) {
+      const year = now.getFullYear() - i
+      labels.push(year.toString())
+    }
+    
+    return labels
+  },
+
   // Group transactions by period and calculate totals
-  groupTransactionsByPeriod(transactions: TransactionDto[], groupBy: 'month' | 'quarter', periodCount: number): { expenses: number[], income: number[] } {
+  groupTransactionsByPeriod(transactions: TransactionDto[], groupBy: 'month' | 'quarter', periodCount: number): { expenses: number[], income: number[], goals: number[] } {
     const expenses = new Array(periodCount).fill(0)
     const income = new Array(periodCount).fill(0)
+    const goals = new Array(periodCount).fill(0)
     
     transactions.forEach(transaction => {
       const transactionDate = new Date(transaction.transactionDate)
@@ -130,11 +159,13 @@ export const transactionService = {
           income[periodIndex] += Math.abs(transaction.amount)
         } else if (transaction.category?.categoryType === 'Expense') {
           expenses[periodIndex] += Math.abs(transaction.amount)
+        } else if (transaction.category?.categoryType === 'TargetedSavingsGoal') {
+          goals[periodIndex] += Math.abs(transaction.amount)
         }
       }
     })
     
-    return { expenses, income }
+    return { expenses, income, goals }
   },
 
   // Get current month spending

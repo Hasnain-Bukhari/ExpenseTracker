@@ -276,7 +276,7 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid UserId { get; set; }
         public virtual Guid AccountId { get; set; }
         public virtual Guid CategoryId { get; set; }
-        public virtual Guid SubCategoryId { get; set; }
+        public virtual Guid? SubCategoryId { get; set; }
         public virtual string? Description { get; set; }
         public virtual decimal Amount { get; set; }
         public virtual DateTime TransactionDate { get; set; }
@@ -289,7 +289,7 @@ namespace ExpenseTracker.Dtos.Models
         public virtual SubCategory? SubCategory { get; set; }
 
         public Transaction() { }
-        public Transaction(Guid id, Guid userId, Guid accountId, Guid categoryId, Guid subCategoryId, string? description, decimal amount, DateTime transactionDate, DateTime createdAt, DateTime updatedAt)
+        public Transaction(Guid id, Guid userId, Guid accountId, Guid categoryId, Guid? subCategoryId, string? description, decimal amount, DateTime transactionDate, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             UserId = userId;
@@ -298,7 +298,10 @@ namespace ExpenseTracker.Dtos.Models
             CategoryId = categoryId;
             Category = new Category() {Id = CategoryId};
             SubCategoryId = subCategoryId;
-            SubCategory = new SubCategory() {Id = SubCategoryId};
+            if (subCategoryId.HasValue)
+            {
+                SubCategory = new SubCategory() {Id = subCategoryId.Value};
+            }
             Description = description;
             Amount = amount;
             TransactionDate = transactionDate;
@@ -367,12 +370,12 @@ namespace ExpenseTracker.Dtos.Models
         public virtual Guid Id { get; set; }
         public virtual Guid UserId { get; set; }
         public virtual string TokenHash { get; set; } = null!;
-        public virtual DateTimeOffset ExpiresAt { get; set; }
+        public virtual DateTime ExpiresAt { get; set; }
         public virtual bool Used { get; set; }
-        public virtual DateTimeOffset CreatedAt { get; set; }
+        public virtual DateTime CreatedAt { get; set; }
 
         public PasswordResetToken() { }
-        public PasswordResetToken(Guid id, Guid userId, string tokenHash, DateTimeOffset expiresAt, bool used, DateTimeOffset createdAt)
+        public PasswordResetToken(Guid id, Guid userId, string tokenHash, DateTime expiresAt, bool used, DateTime createdAt)
         {
             Id = id;
             UserId = userId;

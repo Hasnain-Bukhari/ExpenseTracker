@@ -4,13 +4,13 @@
     <AppNav />
     
     <v-main class="main-content">
-      <div class="container-custom pa-3 pa-sm-6">
+        <div class="container-custom pa-3 pa-sm-4">
         <!-- Header Section -->
-        <div class="calendar-header mb-6">
-          <div class="d-flex align-center justify-space-between mb-4">
+        <div class="calendar-header mb-4">
+          <div class="d-flex align-center justify-space-between mb-3">
             <div>
-              <h1 class="text-h4 text-sm-h3 font-weight-bold mb-2">Transaction Calendar</h1>
-              <p class="text-subtitle-1 text-secondary">View and manage your transactions by date</p>
+              <h1 class="text-h6 text-sm-h5 font-weight-bold mb-1">Transaction Calendar</h1>
+              <p class="text-body-2 text-secondary">View and manage your transactions by date</p>
             </div>
             
             <!-- Month Navigation -->
@@ -26,7 +26,7 @@
               </v-btn>
               
               <div class="text-center">
-                <h2 class="text-h5 font-weight-bold">{{ currentMonthYear }}</h2>
+                <h2 class="text-h6 font-weight-bold">{{ currentMonthYear }}</h2>
                 <p class="text-caption text-secondary">{{ monthlyStats.transactionCount }} transactions</p>
               </div>
               
@@ -43,40 +43,40 @@
           </div>
           
           <!-- Quick Stats -->
-          <v-row>
+          <v-row class="mt-2" dense>
             <v-col cols="12" sm="3">
               <v-card class="stat-card" variant="outlined">
-                <v-card-text class="text-center">
-                  <v-icon icon="mdi-calendar-check" color="primary" size="32" class="mb-2" />
-                  <p class="text-h6 font-weight-bold text-primary">{{ monthlyStats.transactionCount }}</p>
-                  <p class="text-caption text-secondary">Transactions</p>
+                <v-card-text class="text-center pa-3">
+                  <v-icon icon="mdi-calendar-check" color="primary" size="24" class="mb-1" />
+                  <p class="text-body-1 font-weight-bold text-primary mb-0">{{ monthlyStats.transactionCount }}</p>
+                  <p class="text-caption text-secondary mt-1">Transactions</p>
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="12" sm="3">
               <v-card class="stat-card" variant="outlined">
-                <v-card-text class="text-center">
-                  <v-icon icon="mdi-currency-usd" color="success" size="32" class="mb-2" />
-                  <p class="text-h6 font-weight-bold text-success">{{ formatCurrency(monthlyStats.totalAmount) }}</p>
-                  <p class="text-caption text-secondary">Total Amount</p>
+                <v-card-text class="text-center pa-3">
+                  <v-icon icon="mdi-currency-usd" color="success" size="24" class="mb-1" />
+                  <p class="text-body-1 font-weight-bold text-success mb-0">{{ formatCurrency(monthlyStats.totalAmount) }}</p>
+                  <p class="text-caption text-secondary mt-1">Total Amount</p>
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="12" sm="3">
               <v-card class="stat-card" variant="outlined">
-                <v-card-text class="text-center">
-                  <v-icon icon="mdi-trending-up" color="info" size="32" class="mb-2" />
-                  <p class="text-h6 font-weight-bold text-info">{{ formatCurrency(monthlyStats.incomeAmount) }}</p>
-                  <p class="text-caption text-secondary">Income</p>
+                <v-card-text class="text-center pa-3">
+                  <v-icon icon="mdi-trending-up" color="info" size="24" class="mb-1" />
+                  <p class="text-body-1 font-weight-bold text-info mb-0">{{ formatCurrency(monthlyStats.incomeAmount) }}</p>
+                  <p class="text-caption text-secondary mt-1">Income</p>
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="12" sm="3">
               <v-card class="stat-card" variant="outlined">
-                <v-card-text class="text-center">
-                  <v-icon icon="mdi-trending-down" color="error" size="32" class="mb-2" />
-                  <p class="text-h6 font-weight-bold text-error">{{ formatCurrency(monthlyStats.expenseAmount) }}</p>
-                  <p class="text-caption text-secondary">Expenses</p>
+                <v-card-text class="text-center pa-3">
+                  <v-icon icon="mdi-trending-down" color="error" size="24" class="mb-1" />
+                  <p class="text-body-1 font-weight-bold text-error mb-0">{{ formatCurrency(monthlyStats.expenseAmount) }}</p>
+                  <p class="text-caption text-secondary mt-1">Expenses</p>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -142,9 +142,9 @@
     <!-- Transactions Dialog -->
     <v-dialog v-model="showTransactionsDialog" max-width="900px" rounded="xl">
       <v-card rounded="xl">
-        <v-card-title class="d-flex align-center">
-          <v-icon icon="mdi-calendar-today" class="mr-2" />
-          Transactions for {{ selectedDate ? formatDate(selectedDate) : '' }}
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon icon="mdi-calendar-today" class="mr-2" size="20" />
+          <span class="text-body-1 font-weight-medium">Transactions for {{ selectedDate ? formatDate(selectedDate) : '' }}</span>
           <v-spacer></v-spacer>
           <v-btn
             icon
@@ -172,15 +172,15 @@
                 variant="outlined"
                 rounded="xl"
               >
-                <v-card-text class="pa-4">
+                <v-card-text class="pa-3">
                   <div class="d-flex align-center">
                     <!-- Transaction Icon -->
                     <v-avatar
                       :color="getCategoryTypeColor(transaction.category?.categoryType)"
-                      size="56"
-                      class="mr-4"
+                      size="40"
+                      class="mr-3"
                     >
-                      <v-icon :color="getTransactionIconColor()" size="28">
+                      <v-icon :color="getTransactionIconColor()" size="20">
                         {{ getTransactionIcon(transaction.category?.categoryType) }}
                       </v-icon>
                     </v-avatar>
@@ -188,11 +188,11 @@
                     <!-- Transaction Details -->
                     <div class="flex-grow-1">
                       <div class="d-flex align-center justify-space-between mb-2">
-                        <h3 class="text-h6 font-weight-medium">
+                        <h3 class="text-body-1 font-weight-medium">
                           {{ transaction.description || 'No description' }}
                         </h3>
                         <div class="text-right">
-                          <p class="text-h5 font-weight-bold mb-1" :class="getAmountColor(transaction.category?.categoryType)">
+                          <p class="text-body-1 font-weight-bold mb-1" :class="getAmountColor(transaction.category?.categoryType)">
                             {{ formatCurrency(transaction.amount) }}
                           </p>
                           <p class="text-caption text-secondary">
@@ -239,8 +239,8 @@
 
           <!-- Empty State -->
           <div v-else class="text-center py-8">
-            <v-icon icon="mdi-calendar-blank" size="64" color="grey-lighten-1" class="mb-4" />
-            <h3 class="text-h6 mb-2">No transactions on this date</h3>
+            <v-icon icon="mdi-calendar-blank" size="48" color="grey-lighten-1" class="mb-3" />
+            <h3 class="text-body-1 mb-2">No transactions on this date</h3>
             <p class="text-body-2 text-secondary">Select a different date or add a new transaction.</p>
             <v-btn
               color="primary"
@@ -505,10 +505,10 @@ onMounted(() => {
 
 <style scoped>
 .calendar-header {
-  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 24px;
+  background: rgba(var(--v-theme-surface), 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
 .stat-card {
@@ -534,27 +534,27 @@ onMounted(() => {
 }
 
 .weekday-header {
-  padding: 16px 8px;
+  padding: 12px 8px;
   text-align: center;
   font-weight: 600;
   color: rgb(var(--v-theme-primary));
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  min-height: 600px;
+  min-height: 500px;
 }
 
 .calendar-day {
   border-right: 1px solid rgba(var(--v-theme-outline), 0.1);
   border-bottom: 1px solid rgba(var(--v-theme-outline), 0.1);
-  padding: 12px 8px;
+  padding: 8px 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  min-height: 80px;
+  min-height: 70px;
   display: flex;
   flex-direction: column;
 }
@@ -657,7 +657,7 @@ onMounted(() => {
 }
 
 .main-content {
-  background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.02) 0%, rgba(var(--v-theme-secondary), 0.02) 100%);
+  background-color: rgb(var(--v-theme-background));
   min-height: 100vh;
 }
 
@@ -680,7 +680,7 @@ onMounted(() => {
 }
 
 .transaction-card .v-card-text {
-  padding: 20px !important;
+  padding: 12px !important;
 }
 
 /* Custom scrollbar for transaction list */

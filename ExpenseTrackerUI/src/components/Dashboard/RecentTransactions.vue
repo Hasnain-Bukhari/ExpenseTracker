@@ -1,7 +1,7 @@
 <template>
   <v-card class="transactions-card dashboard-card">
     <!-- Card Header -->
-    <v-card-title class="transactions-header pa-4 pa-sm-6 pb-4">
+    <v-card-title class="transactions-header pa-3 pb-2">
       <div class="header-content w-100">
         <div class="header-main d-flex align-center">
           <v-avatar 
@@ -13,8 +13,8 @@
             <v-icon icon="mdi-history" :size="$vuetify.display.mobile ? 18 : 20" />
           </v-avatar>
           <div class="header-text">
-            <h3 class="text-h6 text-sm-h5 font-weight-bold mb-0">Recent Transactions</h3>
-            <p class="text-caption text-sm-body-2 text-secondary mb-0 d-none d-sm-block">
+            <h3 class="text-body-2 font-weight-bold mb-0">Recent Transactions</h3>
+            <p class="text-caption text-secondary mb-0 d-none d-sm-block" style="font-size: 9px;">
               Last {{ displayLimit }} transactions
             </p>
           </div>
@@ -68,8 +68,9 @@
       </div>
 
       <!-- List View -->
-      <div v-else-if="viewMode === 'list'" class="transactions-list">
-        <v-table class="transactions-table">
+      <div v-else-if="viewMode === 'list'" class="transactions-list-wrapper">
+        <div class="transactions-list">
+          <v-table class="transactions-table" density="compact">
           <thead class="d-none d-sm-table-header-group">
             <tr class="table-header">
               <th class="text-left font-weight-semibold">Transaction</th>
@@ -189,6 +190,7 @@
             </tr>
           </tbody>
         </v-table>
+        </div>
       </div>
 
       <!-- Card View -->
@@ -268,18 +270,6 @@
         </v-row>
       </div>
 
-      <!-- Load More Button -->
-      <div v-if="!isLoading && hasMore" class="load-more-container pa-4 text-center">
-        <v-btn
-          variant="outlined"
-          color="primary"
-          @click="loadMore"
-          :loading="isLoadingMore"
-        >
-          <v-icon start>mdi-refresh</v-icon>
-          Load More Transactions
-        </v-btn>
-      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -300,11 +290,9 @@ const { mobile } = useDisplay()
 
 // Reactive state
 const viewMode = ref<'list' | 'card'>('list')
-const displayLimit = ref(10)
+const displayLimit = ref(15)
 const isLoading = ref(false)
-const isLoadingMore = ref(false)
 const transactions = ref<TransactionDto[]>([])
-const hasMoreData = ref(false)
 
 // Auto-switch to card view on mobile
 watch(mobile, (isMobile) => {
@@ -318,35 +306,27 @@ const recentTransactions = computed(() =>
   transactions.value.slice(0, displayLimit.value)
 )
 
-const hasMore = computed(() => 
-  hasMoreData.value && transactions.value.length > displayLimit.value
-)
-
 // Data loading
 const loadRecentTransactions = async () => {
   isLoading.value = true
   try {
     const response = await transactionService.list({ 
       page: 1, 
-      pageSize: 20 // Load more than display limit to enable "load more"
+      pageSize: 15 // Load transactions for display
     })
     
     // Handle both direct array and paged result
     if (Array.isArray(response)) {
       transactions.value = response
-      hasMoreData.value = response.length >= 20
     } else if (response && response.items) {
       transactions.value = response.items
-      hasMoreData.value = response.total > response.items.length
     } else {
       transactions.value = []
-      hasMoreData.value = false
     }
   } catch (error: any) {
     console.error('Failed to load recent transactions:', error)
     toast.error('Failed to load recent transactions')
     transactions.value = []
-    hasMoreData.value = false
   } finally {
     isLoading.value = false
   }
@@ -405,22 +385,49 @@ const viewAllTransactions = () => {
   router.push('/transactions')
 }
 
-const loadMore = async () => {
-  isLoadingMore.value = true
-  
-  try {
-    // Increase display limit to show more transactions
-    displayLimit.value += 5
-  } catch (error) {
-    console.error('Failed to load more transactions:', error)
-    toast.error('Failed to load more transactions')
-  } finally {
-    isLoadingMore.value = false
-  }
-}
-
 // Lifecycle
 onMounted(() => {
   loadRecentTransactions()
 })
 </script>
+
+<style scoped>
+.transactions-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.transactions-card :deep(.v-card-text) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.transactions-list-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transactions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.transactions-table {
+  width: 100%;
+}
+
+.transactions-table :deep(tr) {
+  height: auto;
+}
+
+.transactions-table :deep(td) {
+  padding: 8px 12px;
+}
+</style>

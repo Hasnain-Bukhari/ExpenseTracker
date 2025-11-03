@@ -38,10 +38,13 @@ namespace ExpenseTracker.Service.Services
             if (category == null)
                 throw new InvalidOperationException("Category not found");
 
-            // Validate subcategory is required
-            var subCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId);
-            if (subCategory == null || subCategory.CategoryId != dto.CategoryId)
-                throw new InvalidOperationException("Subcategory not found or doesn't belong to the selected category");
+            // Validate subcategory if provided
+            if (dto.SubCategoryId.HasValue)
+            {
+                var subCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId.Value);
+                if (subCategory == null || subCategory.CategoryId != dto.CategoryId)
+                    throw new InvalidOperationException("Subcategory not found or doesn't belong to the selected category");
+            }
 
             // Validate amount is positive
             if (dto.Amount <= 0)
@@ -71,9 +74,9 @@ namespace ExpenseTracker.Service.Services
             // Load navigation properties exactly like GetByIdAsync method
             createdTransaction.Account = await _accountRepo.GetByIdAsync(createdTransaction.AccountId);
             createdTransaction.Category = await _categoryRepo.GetByIdAsync(createdTransaction.CategoryId);
-            if (createdTransaction.SubCategoryId != Guid.Empty)
+            if (createdTransaction.SubCategoryId.HasValue)
             {
-                createdTransaction.SubCategory = await _categoryRepo.GetSubByIdAsync(createdTransaction.SubCategoryId);
+                createdTransaction.SubCategory = await _categoryRepo.GetSubByIdAsync(createdTransaction.SubCategoryId.Value);
             }
 
             try
@@ -126,9 +129,9 @@ namespace ExpenseTracker.Service.Services
             // Load navigation properties
             transaction.Account = await _accountRepo.GetByIdAsync(transaction.AccountId);
             transaction.Category = await _categoryRepo.GetByIdAsync(transaction.CategoryId);
-            if (transaction.SubCategoryId != Guid.Empty)
+            if (transaction.SubCategoryId.HasValue)
             {
-                transaction.SubCategory = await _categoryRepo.GetSubByIdAsync(transaction.SubCategoryId);
+                transaction.SubCategory = await _categoryRepo.GetSubByIdAsync(transaction.SubCategoryId.Value);
             }
 
             return MapToDto(transaction);
@@ -150,10 +153,13 @@ namespace ExpenseTracker.Service.Services
             if (category == null)
                 throw new InvalidOperationException("Category not found");
 
-            // Validate subcategory is required
-            var subCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId);
-            if (subCategory == null || subCategory.CategoryId != dto.CategoryId)
-                throw new InvalidOperationException("Subcategory not found or doesn't belong to the selected category");
+            // Validate subcategory if provided
+            if (dto.SubCategoryId.HasValue)
+            {
+                var subCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId.Value);
+                if (subCategory == null || subCategory.CategoryId != dto.CategoryId)
+                    throw new InvalidOperationException("Subcategory not found or doesn't belong to the selected category");
+            }
 
             // Validate amount is positive
             if (dto.Amount <= 0)
@@ -172,7 +178,14 @@ namespace ExpenseTracker.Service.Services
             // Load navigation properties for response
             existing.Account = account;
             existing.Category = category;
-            existing.SubCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId);
+            if (dto.SubCategoryId.HasValue)
+            {
+                existing.SubCategory = await _categoryRepo.GetSubByIdAsync(dto.SubCategoryId.Value);
+            }
+            else
+            {
+                existing.SubCategory = null;
+            }
 
             return MapToDto(existing);
         }
@@ -228,14 +241,18 @@ namespace ExpenseTracker.Service.Services
                 null
             );
 
-            var subCategoryDto = new SubCategoryDto(
-                transaction.SubCategory.Id,
-                transaction.SubCategory.CategoryId,
-                transaction.SubCategory.Name,
-                transaction.SubCategory.Description,
-                transaction.SubCategory.CreatedAt,
-                transaction.SubCategory.UpdatedAt
-            );
+            SubCategoryDto? subCategoryDto = null;
+            if (transaction.SubCategory != null)
+            {
+                subCategoryDto = new SubCategoryDto(
+                    transaction.SubCategory.Id,
+                    transaction.SubCategory.CategoryId,
+                    transaction.SubCategory.Name,
+                    transaction.SubCategory.Description,
+                    transaction.SubCategory.CreatedAt,
+                    transaction.SubCategory.UpdatedAt
+                );
+            }
 
             return new TransactionDto(
                 transaction.Id,

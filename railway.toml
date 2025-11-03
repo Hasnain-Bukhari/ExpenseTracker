@@ -1,0 +1,28 @@
+# railway.toml
+# Railway configuration for Expense Tracker API
+# This file is in the root directory of the repository
+
+[build]
+# Tell Railway to build from the ExpenseTrackerAPI subdirectory
+# All paths below are relative to ExpenseTrackerAPI/
+root = "ExpenseTrackerAPI"
+
+# Set environment variables during build
+[build.env]
+ASPNETCORE_ENVIRONMENT = "Production"
+
+[deploy]
+# Build command: publish the API project (relative to ExpenseTrackerAPI/)
+# This will create the output in ExpenseTrackerAPI/out/
+buildCommand = "dotnet publish src/ExpenseTracker.API/ExpenseTracker.API.csproj -c Release -o out"
+
+# Start command: run the published DLL (relative to ExpenseTrackerAPI/)
+# Railway automatically provides PORT environment variable
+# ASP.NET Core will automatically use the PORT variable
+startCommand = "dotnet out/ExpenseTracker.API.dll"
+
+# Environment variables for deployment
+[deploy.env]
+ASPNETCORE_ENVIRONMENT = "Production"
+# Note: Railway automatically sets PORT environment variable
+# No need to set ASPNETCORE_URLS - .NET will use PORT automatically

@@ -25,11 +25,13 @@ namespace ExpenseTracker.Service.Services
     {
         private readonly IGoalRepository _goalRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ITransactionRepository _transactionRepository;
 
-        public GoalService(IGoalRepository goalRepository, ICategoryRepository categoryRepository)
+        public GoalService(IGoalRepository goalRepository, ICategoryRepository categoryRepository, ITransactionRepository transactionRepository)
         {
             _goalRepository = goalRepository;
             _categoryRepository = categoryRepository;
+            _transactionRepository = transactionRepository;
         }
 
         public async Task<GoalDto> CreateGoalAsync(Guid userId, CreateGoalDto createGoalDto)
@@ -41,6 +43,12 @@ namespace ExpenseTracker.Service.Services
             
             if (category.CategoryType != CategoryType.TargetedSavingsGoal)
                 throw new ArgumentException("Category must be of type TargetedSavingsGoal");
+
+            // Check if user already has an active goal for this category
+            if (createGoalDto.Status == GoalStatus.Active && await _goalRepository.HasActiveGoalAsync(userId, createGoalDto.CategoryId))
+            {
+                throw new InvalidOperationException("You already have an active goal for this category. Only one active goal per category is allowed.");
+            }
 
             // Validate dates
             if (createGoalDto.EndDate.HasValue && createGoalDto.EndDate.Value <= createGoalDto.StartDate)
@@ -93,6 +101,24 @@ namespace ExpenseTracker.Service.Services
             
             if (category.CategoryType != CategoryType.TargetedSavingsGoal)
                 throw new ArgumentException("Category must be of type TargetedSavingsGoal");
+
+            // Check if category is being changed and if new category already has an active goal
+            if (updateGoalDto.CategoryId != existingGoal.CategoryId)
+            {
+                if (await _goalRepository.HasActiveGoalForCategoryExcludingAsync(userId, updateGoalDto.CategoryId, updateGoalDto.Id))
+                {
+                    throw new InvalidOperationException("You already have an active goal for this category. Only one active goal per category is allowed.");
+                }
+            }
+            // If category is not changing, check if the goal status is being changed to Active and there's already an active goal
+            else if (updateGoalDto.Status == GoalStatus.Active && existingGoal.Status != GoalStatus.Active)
+            {
+                // Category is same, but status is changing to Active - check if another active goal exists
+                if (await _goalRepository.HasActiveGoalForCategoryExcludingAsync(userId, updateGoalDto.CategoryId, updateGoalDto.Id))
+                {
+                    throw new InvalidOperationException("You already have an active goal for this category. Only one active goal per category is allowed.");
+                }
+            }
 
             // Validate dates
             if (updateGoalDto.EndDate.HasValue && updateGoalDto.EndDate.Value <= updateGoalDto.StartDate)
@@ -184,10 +210,28 @@ namespace ExpenseTracker.Service.Services
             return goal != null && goal.UserId == userId;
         }
 
-        private Task<GoalProgressDto> CalculateGoalProgressAsync(Goal goal, Category? category)
+        private async Task<GoalProgressDto> CalculateGoalProgressAsync(Goal goal, Category? category)
         {
-            var remainingAmount = goal.TargetAmount - goal.CurrentAmount;
-            var percentageComplete = goal.TargetAmount > 0 ? (int)((goal.CurrentAmount / goal.TargetAmount) * 100) : 0;
+            // Calculate total from transactions for this goal's category since goal start date
+            var transactionTotal = await _transactionRepository.GetTotalSpentByCategoryAndDateRangeAsync(
+                goal.UserId,
+                goal.CategoryId,
+                goal.StartDate,
+                DateTime.UtcNow
+            );
+
+            // Total current amount = opening balance (CurrentAmount) + transactions for this category
+            var totalCurrentAmount = goal.CurrentAmount + transactionTotal;
+            
+            // Ensure it doesn't exceed target
+            var actualCurrentAmount = totalCurrentAmount > goal.TargetAmount ? goal.TargetAmount : totalCurrentAmount;
+            
+            var remainingAmount = goal.TargetAmount - actualCurrentAmount;
+            var percentageComplete = goal.TargetAmount > 0 ? (int)((actualCurrentAmount / goal.TargetAmount) * 100) : 0;
+            
+            // Cap at 100%
+            if (percentageComplete > 100)
+                percentageComplete = 100;
             
             var daysRemaining = 0;
             var isOverdue = false;
@@ -200,14 +244,14 @@ namespace ExpenseTracker.Service.Services
                 isOverdue = daysRemaining < 0;
             }
 
-            return Task.FromResult(new GoalProgressDto
+            return new GoalProgressDto
             {
                 Id = goal.Id,
                 GoalId = goal.Id,
                 Name = goal.Name,
                 Description = goal.Description,
                 TargetAmount = goal.TargetAmount,
-                CurrentAmount = goal.CurrentAmount,
+                CurrentAmount = actualCurrentAmount,
                 RemainingAmount = remainingAmount,
                 PercentageComplete = percentageComplete,
                 CategoryId = goal.CategoryId,
@@ -233,7 +277,7 @@ namespace ExpenseTracker.Service.Services
                 IsOverdue = isOverdue,
                 CreatedAt = goal.CreatedAt,
                 UpdatedAt = goal.UpdatedAt
-            });
+            };
         }
 
         private string GetStatusColor(GoalStatus status)

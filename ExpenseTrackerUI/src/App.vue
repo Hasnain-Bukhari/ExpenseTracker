@@ -43,11 +43,12 @@
                 <v-select
                   v-model="transactionForm.subCategoryId"
                   :items="subCategoryOptions"
-                  label="Subcategory"
+                  label="Subcategory (Optional)"
                   :rules="subCategoryRules"
                   variant="outlined"
                   rounded="xl"
                   class="mb-3"
+                  clearable
                 ></v-select>
               </v-col>
               <v-col cols="12" md="6">
@@ -318,7 +319,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useDialog } from '@/composables/useDialog'
 import { transactionApi, accountApi, categoryApi } from '@/lib/api'
@@ -435,7 +436,7 @@ const statusOptions = [
 // Form rules
 const accountRules = [(v: string) => !!v || 'Account is required']
 const categoryRules = [(v: string) => !!v || 'Category is required']
-const subCategoryRules = [(v: string) => !!v || 'Subcategory is required']
+const subCategoryRules: Array<(v: string | null | undefined) => boolean | string> = [] // Subcategory is optional
 const amountRules = [
   (v: number) => !!v || 'Amount is required',
   (v: number) => v > 0 || 'Amount must be positive'
@@ -455,8 +456,13 @@ const loadAccounts = async () => {
 
 const loadCategories = async () => {
   try {
-    const data = await categoryApi.list()
+    // Use categoryService.list() which returns CategoryDto[] with subcategories
+    const data = await categoryService.list()
     categories.value = data || []
+    console.log('Loaded categories:', categories.value.length, 'categories')
+    if (categories.value.length > 0) {
+      console.log('First category subcategories:', categories.value[0]?.subCategories?.length || 0)
+    }
   } catch (error) {
     console.error('Failed to load categories:', error)
     categories.value = []
@@ -466,7 +472,14 @@ const loadCategories = async () => {
 const loadSavingsCategories = async () => {
   try {
     const allCategories = await categoryService.list()
-    savingsCategories.value = allCategories.filter((cat: CategoryDto) => cat.categoryType === 'TargetedSavingsGoal')
+    const allSavingsCategories = allCategories.filter((cat: CategoryDto) => cat.categoryType === 'TargetedSavingsGoal')
+    
+    // Get active goals to filter out categories that already have active goals
+    const activeGoalsList = await goalService.getActive()
+    const activeCategoryIds = new Set(activeGoalsList.map(goal => goal.categoryId))
+    
+    // Filter out categories that already have active goals
+    savingsCategories.value = allSavingsCategories.filter(cat => !activeCategoryIds.has(cat.id))
   } catch (error) {
     console.error('Failed to load savings categories:', error)
     savingsCategories.value = []
@@ -512,7 +525,13 @@ const saveTransaction = async () => {
 
   savingTransaction.value = true
   try {
-    await transactionApi.create(transactionForm)
+    // Prepare form data - convert empty string to null for optional subcategory
+    const formData = {
+      ...transactionForm,
+      subCategoryId: transactionForm.subCategoryId || null
+    }
+    
+    await transactionApi.create(formData)
     toast.success('Transaction created successfully')
     closeTransactionDialog()
   } catch (error: any) {
@@ -597,5 +616,31 @@ onMounted(async () => {
     loadExpenseCategories(),
     loadActiveBudgets()
   ])
+})
+
+// Watch for dialog opening and ensure data is loaded
+watch(showTransactionDialog, async (isOpen) => {
+  if (isOpen) {
+    // Reload data when dialog opens to ensure it's fresh
+    await Promise.all([
+      loadAccounts(),
+      loadCategories()
+    ])
+  }
+})
+
+watch(showGoalDialog, async (isOpen) => {
+  if (isOpen) {
+    await loadSavingsCategories()
+  }
+})
+
+watch(showBudgetDialog, async (isOpen) => {
+  if (isOpen) {
+    await Promise.all([
+      loadExpenseCategories(),
+      loadActiveBudgets()
+    ])
+  }
 })
 </script>

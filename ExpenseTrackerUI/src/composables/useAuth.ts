@@ -74,7 +74,11 @@ export function useAuth() {
   }
 
   async function resetPassword(payload: ResetPasswordRequest) {
-    const r = await api.post('/auth/reset-password', payload)
+    // Backend only expects token and newPassword
+    const r = await api.post('/auth/reset-password', {
+      token: payload.token,
+      newPassword: payload.newPassword
+    })
     return r.data
   }
 

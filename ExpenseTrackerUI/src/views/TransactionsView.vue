@@ -214,11 +214,12 @@
                 <v-select
                   v-model="form.subCategoryId"
                   :items="subCategoryOptions"
-                  label="Subcategory"
+                  label="Subcategory (Optional)"
                   :rules="subCategoryRules"
                   variant="outlined"
                   rounded="xl"
                   class="mb-3"
+                  clearable
                 ></v-select>
               </v-col>
               <v-col cols="12" md="6">
@@ -415,7 +416,7 @@ const subCategoryOptions = computed(() => {
 // Form rules
 const accountRules = [(v: string) => !!v || 'Account is required']
 const categoryRules = [(v: string) => !!v || 'Category is required']
-const subCategoryRules = [(v: string) => !!v || 'Subcategory is required']
+const subCategoryRules: Array<(v: string | null | undefined) => boolean | string> = [] // Subcategory is optional
 const amountRules = [
   (v: number) => !!v || 'Amount is required',
   (v: number) => v > 0 || 'Amount must be positive'
@@ -504,14 +505,20 @@ const saveTransaction = async () => {
 
   saving.value = true
   try {
+    // Prepare form data - convert empty string to null for optional subcategory
+    const formData = {
+      ...form,
+      subCategoryId: form.subCategoryId || null
+    }
+
     if (editingTransaction.value) {
       await transactionService.update(editingTransaction.value.id, {
         id: editingTransaction.value.id,
-        ...form
+        ...formData
       })
       toast.success('Transaction updated successfully')
     } else {
-      await transactionService.create(form)
+      await transactionService.create(formData)
       toast.success('Transaction created successfully')
     }
     showDialog.value = false

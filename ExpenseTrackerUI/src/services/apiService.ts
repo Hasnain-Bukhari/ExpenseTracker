@@ -370,7 +370,7 @@ export const transactionService = {
   async create(data: {
     accountId: string
     categoryId: string
-    subCategoryId: string
+    subCategoryId?: string | null
     description?: string | null
     amount: number
     transactionDate: string
@@ -389,7 +389,7 @@ export const transactionService = {
     id: string
     accountId: string
     categoryId: string
-    subCategoryId: string
+    subCategoryId?: string | null
     description?: string | null
     amount: number
     transactionDate: string

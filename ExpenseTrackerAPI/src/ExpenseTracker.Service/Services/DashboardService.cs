@@ -27,7 +27,13 @@ namespace ExpenseTracker.Service.Services
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
             
-            return await _transactionRepository.GetTotalSpendingByDateRangeAsync(userId, today, tomorrow);
+            // Only include Expense category type transactions
+            return await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                today, 
+                tomorrow, 
+                "Expense"
+            );
         }
 
         public async Task<decimal> GetMonthlyBudgetRemainingAsync(Guid userId)
@@ -79,18 +85,20 @@ namespace ExpenseTracker.Service.Services
 
             foreach (var goal in goals)
             {
-                // Calculate current amount from transactions for this goal's category
-                decimal actualCurrentAmount = await _transactionRepository.GetTotalSpentByCategoryAndDateRangeAsync(
+                // Calculate total from transactions for this goal's category since goal start date
+                decimal transactionTotal = await _transactionRepository.GetTotalSpentByCategoryAndDateRangeAsync(
                     userId,
                     goal.CategoryId,
                     goal.StartDate,
                     DateTime.UtcNow);
 
-                // Use the calculated amount or the goal's current amount, whichever is higher
-                // This allows for initial amounts set on the goal
-                decimal currentAmount = actualCurrentAmount > 0 ? actualCurrentAmount : goal.CurrentAmount;
+                // Total current amount = opening balance (CurrentAmount) + transactions for this category
+                decimal totalCurrentAmount = goal.CurrentAmount + transactionTotal;
                 
-                currentTotal += currentAmount;
+                // Ensure it doesn't exceed target
+                decimal actualCurrentAmount = totalCurrentAmount > goal.TargetAmount ? goal.TargetAmount : totalCurrentAmount;
+                
+                currentTotal += actualCurrentAmount;
                 targetTotal += goal.TargetAmount;
             }
 

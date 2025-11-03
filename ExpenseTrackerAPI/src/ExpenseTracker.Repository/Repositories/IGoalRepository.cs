@@ -19,5 +19,7 @@ namespace ExpenseTracker.Repository.Repositories
         Task<IEnumerable<Goal>> GetActiveGoalsByUserIdAsync(Guid userId);
         Task<IEnumerable<Goal>> GetCompletedGoalsByUserIdAsync(Guid userId);
         Task<IEnumerable<GoalProgressDto>> GetGoalProgressByUserIdAsync(Guid userId);
+        Task<bool> HasActiveGoalAsync(Guid userId, Guid categoryId);
+        Task<bool> HasActiveGoalForCategoryExcludingAsync(Guid userId, Guid categoryId, Guid excludeGoalId);
     }
 }

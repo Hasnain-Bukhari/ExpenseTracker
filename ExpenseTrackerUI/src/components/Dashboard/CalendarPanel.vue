@@ -39,9 +39,9 @@
       <div class="mini-calendar">
         <!-- Calendar Header -->
         <div class="calendar-header">
-          <div class="d-flex align-center justify-space-between mb-4">
+          <div class="d-flex align-center justify-space-between mb-2">
             <div>
-              <h4 class="text-subtitle-1 font-weight-medium mb-1">{{ currentMonthYear }}</h4>
+              <h4 class="text-body-1 font-weight-medium mb-1">{{ currentMonthYear }}</h4>
               <p class="text-caption text-secondary mb-0">{{ monthlyTransactionCount }} transactions this month</p>
             </div>
             <div class="d-flex gap-1">
@@ -111,7 +111,7 @@
       </div>
       
       <!-- Summary Stats -->
-      <div class="calendar-stats mt-4">
+      <div class="calendar-stats mt-2">
         <v-row>
           <v-col cols="4">
             <div class="stat-item text-center">
@@ -353,8 +353,8 @@ onMounted(() => {
 <style scoped>
 .mini-calendar {
   background: rgba(var(--v-theme-surface), 0.8);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 12px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(var(--v-theme-outline), 0.1);
   box-shadow: 0 8px 32px rgba(var(--v-theme-primary), 0.12);
@@ -365,7 +365,7 @@ onMounted(() => {
 }
 
 .calendar-header {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   width: 100%;
 }
 
@@ -383,28 +383,28 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 240px;
+  min-height: 160px;
 }
 
 .weekday-headers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 2px;
+  margin-bottom: 4px;
   width: 100%;
 }
 
 .weekday-header {
   text-align: center;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
   color: rgb(var(--v-theme-primary));
-  padding: 6px 4px;
+  padding: 3px 2px;
   background: rgba(var(--v-theme-primary), 0.08);
-  border-radius: 8px;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  height: 28px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -413,7 +413,7 @@ onMounted(() => {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 2px;
   width: 100%;
 }
 
@@ -423,15 +423,15 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  min-height: 36px;
-  padding: 6px;
+  min-height: 24px;
+  padding: 3px 2px;
   background: rgba(var(--v-theme-surface), 0.6);
   border: 1px solid transparent;
-  box-shadow: 0 1px 4px rgba(var(--v-theme-primary), 0.05);
+  box-shadow: 0 1px 2px rgba(var(--v-theme-primary), 0.05);
 }
 
 .calendar-day:hover {
@@ -462,52 +462,56 @@ onMounted(() => {
 }
 
 .day-number {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   color: rgb(var(--v-theme-on-surface));
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .transaction-indicator {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 1px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 2px;
+  margin-top: 0px;
 }
 
 .transaction-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .more-indicator {
-  font-size: 9px;
-  color: rgb(var(--v-theme-on-surface-variant));
-  font-weight: 700;
-  padding: 2px 4px;
-  background: rgba(var(--v-theme-surface), 0.95);
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-size: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  padding: 2px 3px;
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)), rgba(var(--v-theme-primary), 0.8));
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(var(--v-theme-primary), 0.5), 0 1px 1px rgba(0, 0, 0, 0.4);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  line-height: 1;
+  min-width: 14px;
+  text-align: center;
 }
 
 .calendar-stats {
-  border-top: 2px solid rgba(var(--v-theme-outline), 0.15);
-  padding-top: 24px;
-  margin-top: 24px;
+  border-top: 1px solid rgba(var(--v-theme-outline), 0.15);
+  padding-top: 8px;
+  margin-top: 8px;
   background: rgba(var(--v-theme-primary), 0.03);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .stat-item {
-  padding: 16px 12px;
-  border-radius: 12px;
+  padding: 8px 6px;
+  border-radius: 8px;
   transition: all 0.3s ease;
   background: rgba(var(--v-theme-surface), 0.8);
   border: 1px solid rgba(var(--v-theme-outline), 0.1);
@@ -570,5 +574,15 @@ onMounted(() => {
   max-width: 100%;
   position: relative;
   overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card :deep(.v-card-text) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 </style>
