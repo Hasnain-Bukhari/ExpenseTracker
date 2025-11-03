@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["dotnet-sdk_8", "dotnetCorePackages.dotnetcore_8"]
+
+[phases.build]
+cmds = [
+  "dotnet restore ExpenseTracker.sln",
+  "dotnet publish src/ExpenseTracker.API/ExpenseTracker.API.csproj -c Release -o out -p:UseAppHost=false"
+]
+
+[phases.start]
+cmd = "cd out && dotnet ExpenseTracker.API.dll"
+

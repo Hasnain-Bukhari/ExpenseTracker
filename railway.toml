@@ -10,16 +10,19 @@ root = "ExpenseTrackerAPI"
 # Set environment variables during build
 [build.env]
 ASPNETCORE_ENVIRONMENT = "Production"
+DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
+DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 
 [deploy]
-# Build command: publish the API project (relative to ExpenseTrackerAPI/)
-# This will create the output in ExpenseTrackerAPI/out/
-buildCommand = "dotnet publish src/ExpenseTracker.API/ExpenseTracker.API.csproj -c Release -o out"
+# Build command: restore solution dependencies and publish the API project
+# This ensures all project dependencies are resolved before publishing
+# The output will be in ExpenseTrackerAPI/out/
+buildCommand = "dotnet restore ExpenseTracker.sln && dotnet publish src/ExpenseTracker.API/ExpenseTracker.API.csproj -c Release -o out --no-restore -p:UseAppHost=false"
 
-# Start command: run the published DLL (relative to ExpenseTrackerAPI/)
+# Start command: use the start script (relative to ExpenseTrackerAPI/)
 # Railway automatically provides PORT environment variable
 # ASP.NET Core will automatically use the PORT variable
-startCommand = "dotnet out/ExpenseTracker.API.dll"
+startCommand = "./start.sh"
 
 # Environment variables for deployment
 [deploy.env]
