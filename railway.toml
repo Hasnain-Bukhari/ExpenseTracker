@@ -7,25 +7,18 @@
 # All paths below are relative to ExpenseTrackerAPI/
 root = "ExpenseTrackerAPI"
 
+# Railway will automatically detect the Dockerfile in ExpenseTrackerAPI/
+# Since Railpack doesn't support .NET, Railway will use Docker instead
+
 # Set environment variables during build
 [build.env]
 ASPNETCORE_ENVIRONMENT = "Production"
 DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
 DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 
-[deploy]
-# Build command: restore solution dependencies and publish the API project
-# This ensures all project dependencies are resolved before publishing
-# The output will be in ExpenseTrackerAPI/out/
-buildCommand = "dotnet restore ExpenseTracker.sln && dotnet publish src/ExpenseTracker.API/ExpenseTracker.API.csproj -c Release -o out --no-restore -p:UseAppHost=false"
-
-# Start command: use the start script (relative to ExpenseTrackerAPI/)
-# Railway automatically provides PORT environment variable
-# ASP.NET Core will automatically use the PORT variable
-startCommand = "./start.sh"
-
 # Environment variables for deployment
 [deploy.env]
 ASPNETCORE_ENVIRONMENT = "Production"
 # Note: Railway automatically sets PORT environment variable
+# ASP.NET Core will automatically use PORT environment variable
 # No need to set ASPNETCORE_URLS - .NET will use PORT automatically
