@@ -64,6 +64,21 @@ namespace ExpenseTracker.API.Controllers
             });
         }
 
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetSummary()
+        {
+            var userId = GetCurrentUserId();
+            var (totalBalance, monthlySpend, monthlyIncome, netSavings) = await _dashboardService.GetSummaryAsync(userId);
+            
+            return Ok(new
+            {
+                totalBalance,
+                monthlySpend,
+                monthlyIncome,
+                netSavings
+            });
+        }
+
         private Guid GetCurrentUserId()
         {
             var sub = User.FindFirst("sub")?.Value

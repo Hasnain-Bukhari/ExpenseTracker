@@ -11,6 +11,13 @@ export interface DashboardStats {
   spendingVsBudgetScore: number
 }
 
+export interface DashboardSummary {
+  totalBalance: number
+  monthlySpend: number
+  monthlyIncome: number
+  netSavings: number
+}
+
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
     const response = await api.get<DashboardStats>('/dashboard/stats')
@@ -29,6 +36,11 @@ export const dashboardService = {
 
   async getGoalsProgress(): Promise<{ current: number; target: number; percentage: number }> {
     const response = await api.get<{ current: number; target: number; percentage: number }>('/dashboard/goals-progress')
+    return response.data
+  },
+
+  async getSummary(): Promise<DashboardSummary> {
+    const response = await api.get<DashboardSummary>('/dashboard/summary')
     return response.data
   }
 }

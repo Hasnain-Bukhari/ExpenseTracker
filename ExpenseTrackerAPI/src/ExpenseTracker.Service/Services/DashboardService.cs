@@ -148,6 +148,70 @@ namespace ExpenseTracker.Service.Services
             decimal score = (totalBudget - totalSpent) / totalBudget * 100;
             return Math.Max(0, Math.Min(100, (int)score));
         }
+
+        public async Task<(decimal TotalBalance, decimal MonthlySpend, decimal MonthlyIncome, decimal NetSavings)> GetSummaryAsync(Guid userId)
+        {
+            var today = DateTime.Today;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            var endOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+            var tomorrow = today.AddDays(1);
+
+            // Get all-time totals for balance calculation
+            var allTimeIncome = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                DateTime.MinValue, 
+                DateTime.MaxValue, 
+                "Income"
+            );
+            
+            var allTimeExpense = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                DateTime.MinValue, 
+                DateTime.MaxValue, 
+                "Expense"
+            );
+            
+            var allTimeSavings = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                DateTime.MinValue, 
+                DateTime.MaxValue, 
+                "TargetedSavingsGoal"
+            );
+
+            // Total Balance = Income - |Expense| - |TargetedSavingsGoal|
+            // (Expenses and savings are typically negative, so we use absolute value)
+            var totalBalance = allTimeIncome - Math.Abs(allTimeExpense) - Math.Abs(allTimeSavings);
+
+            // Get current month totals
+            var monthlySpend = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                startOfMonth, 
+                tomorrow, 
+                "Expense"
+            );
+            
+            var monthlyIncome = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                startOfMonth, 
+                tomorrow, 
+                "Income"
+            );
+            
+            var netSavings = await _transactionRepository.GetTotalSpendingByDateRangeAndCategoryTypeAsync(
+                userId, 
+                startOfMonth, 
+                tomorrow, 
+                "TargetedSavingsGoal"
+            );
+
+            // Use absolute values for display (in case they're stored as negative)
+            return (
+                totalBalance,
+                Math.Abs(monthlySpend),
+                Math.Abs(monthlyIncome),
+                Math.Abs(netSavings)
+            );
+        }
     }
 }
 

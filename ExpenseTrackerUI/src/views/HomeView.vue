@@ -271,9 +271,11 @@ import GoalsList from '@/components/Dashboard/GoalsList.vue'
 import BudgetPanel from '@/components/Dashboard/BudgetPanel.vue'
 import RecentTransactions from '@/components/Dashboard/RecentTransactions.vue'
 import CalendarPanel from '@/components/Dashboard/CalendarPanel.vue'
+import { useAppStore } from '@/stores'
 
 const { mobile } = useDisplay()
 const { openTransactionDialog, openGoalDialog, openBudgetDialog } = useDialog()
+const store = useAppStore()
 
 // Reactive state
 const showQuickActions = ref(false)
@@ -311,6 +313,9 @@ const getBudgetScoreColor = (score: number): string => {
 
 // Lifecycle
 onMounted(async () => {
-  await loadDashboardStats()
+  await Promise.all([
+    loadDashboardStats(),
+    store.fetchDashboardSummary()
+  ])
 })
 </script>

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Account, Transaction, Goal, Budget } from '@/types'
 import { mockAccounts, mockTransactions, mockGoals, mockBudgets } from '@/utils/mockData'
+import { dashboardService } from '@/lib/dashboardService'
 
 export const useAppStore = defineStore('app', () => {
   // State
@@ -11,12 +12,28 @@ export const useAppStore = defineStore('app', () => {
   const budgets = ref<Budget[]>(mockBudgets)
   const sideNavCollapsed = ref(false)
 
-  // Getters
+  // Dashboard summary state (fetched from API)
+  const dashboardSummary = ref<{
+    totalBalance: number
+    monthlySpend: number
+    monthlyIncome: number
+    netSavings: number
+  } | null>(null)
+
+  // Getters - use real data from API if available, otherwise fall back to computed from mock data
   const totalBalance = computed(() => {
+    if (dashboardSummary.value !== null) {
+      return dashboardSummary.value.totalBalance
+    }
+    // Fallback to computed from accounts
     return accounts.value.reduce((sum, account) => sum + account.balance, 0)
   })
 
   const monthlySpend = computed(() => {
+    if (dashboardSummary.value !== null) {
+      return dashboardSummary.value.monthlySpend
+    }
+    // Fallback to computed from transactions
     const currentMonth = new Date().getMonth()
     const currentYear = new Date().getFullYear()
     
@@ -31,6 +48,10 @@ export const useAppStore = defineStore('app', () => {
   })
 
   const monthlyIncome = computed(() => {
+    if (dashboardSummary.value !== null) {
+      return dashboardSummary.value.monthlyIncome
+    }
+    // Fallback to computed from transactions
     const currentMonth = new Date().getMonth()
     const currentYear = new Date().getFullYear()
     
@@ -44,7 +65,13 @@ export const useAppStore = defineStore('app', () => {
       .reduce((sum, t) => sum + t.amount, 0)
   })
 
-  const savings = computed(() => monthlyIncome.value - monthlySpend.value)
+  const savings = computed(() => {
+    if (dashboardSummary.value !== null) {
+      return dashboardSummary.value.netSavings
+    }
+    // Fallback to computed
+    return monthlyIncome.value - monthlySpend.value
+  })
 
   const recentTransactions = computed(() => {
     return transactions.value
@@ -57,6 +84,16 @@ export const useAppStore = defineStore('app', () => {
     sideNavCollapsed.value = !sideNavCollapsed.value
   }
 
+  const fetchDashboardSummary = async () => {
+    try {
+      const summary = await dashboardService.getSummary()
+      dashboardSummary.value = summary
+    } catch (error) {
+      console.error('Failed to fetch dashboard summary:', error)
+      // Keep existing value or null
+    }
+  }
+
   return {
     // State
     accounts,
@@ -64,6 +101,7 @@ export const useAppStore = defineStore('app', () => {
     goals,
     budgets,
     sideNavCollapsed,
+    dashboardSummary,
     // Getters
     totalBalance,
     monthlySpend,
@@ -72,5 +110,6 @@ export const useAppStore = defineStore('app', () => {
     recentTransactions,
     // Actions
     toggleSideNav,
+    fetchDashboardSummary,
   }
 })

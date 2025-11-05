@@ -329,9 +329,18 @@ const drawTrendChart = (canvas: HTMLCanvasElement, data: number[]) => {
 onMounted(async () => {
   // Simulate loading state
   isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
-  }, 500)
+  
+  // Fetch real dashboard summary data
+  try {
+    await store.fetchDashboardSummary()
+  } catch (error) {
+    console.error('Failed to fetch dashboard summary:', error)
+  } finally {
+    // Hide loading state after a minimum delay for better UX
+    setTimeout(() => {
+      isLoading.value = false
+    }, 300)
+  }
 
   // Draw trend charts after component is mounted
   await nextTick()
