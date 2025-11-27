@@ -45,6 +45,7 @@ namespace ExpenseTracker.Service.Services.Auth
                 request.Email.ToUpperInvariant(),
                 HashPassword(request.Password),
                 request.Name,
+                null, // PreferredName
                 null, // DefaultCurrencyId - wiring to Currency entity will be added later
                 _options.DefaultLocale,
                 _options.DefaultTimezone,
@@ -139,6 +140,7 @@ namespace ExpenseTracker.Service.Services.Auth
                     verification.Email.ToUpperInvariant(), 
                     null, 
                     verification.Name, 
+                    null, // PreferredName
                     null, 
                     _options.DefaultLocale, 
                     _options.DefaultTimezone, 

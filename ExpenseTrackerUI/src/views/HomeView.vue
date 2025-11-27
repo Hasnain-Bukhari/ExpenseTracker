@@ -15,7 +15,7 @@
           <div class="welcome-content">
             <div class="welcome-text">
               <h1 class="welcome-title text-h4 text-sm-h3 font-weight-bold mb-2">
-                Welcome back, Han! 👋
+                Welcome back, {{ displayName }}! 👋
               </h1>
               <p class="welcome-subtitle text-subtitle-1 text-sm-h6 text-secondary mb-3 mb-sm-0">
                 Here's what's happening with your finances today.
@@ -288,6 +288,22 @@ const spendingVsBudgetScore = ref(0)
 
 // Computed properties
 const isMobile = computed(() => mobile.value)
+
+// Get display name from localStorage profile data
+const displayName = computed(() => {
+  try {
+    const profileData = localStorage.getItem('profile_data')
+    if (profileData) {
+      const profile = JSON.parse(profileData)
+      // Use preferred name if available, otherwise full name, otherwise generic name
+      return profile.preferredName || profile.fullName || 'there'
+    }
+  } catch (err) {
+    console.warn('Failed to read profile data from localStorage:', err)
+  }
+  // Fallback to generic name if profile data is not available
+  return 'there'
+})
 
 // Load dashboard stats
 const loadDashboardStats = async () => {

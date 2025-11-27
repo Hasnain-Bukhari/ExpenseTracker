@@ -8,6 +8,7 @@
     <property name="NormalizedEmail" column="normalized_email" />
     <property name="PasswordHash" column="password_hash" />
     <property name="FullName" column="full_name" />
+    <property name="PreferredName" column="preferred_name" />
     <!-- DefaultCurrency is now a FK to currencies.id; map both the FK and the many-to-one relation -->
     <property name="DefaultCurrencyId" column="default_currency_id" insert="false" update="false" />
     <many-to-one name="DefaultCurrency" class="ExpenseTracker.Dtos.Models.Currency, ExpenseTracker.Dtos" column="default_currency_id" />

@@ -9,6 +9,7 @@ namespace ExpenseTracker.Dtos.Profile
         Guid Id,
         string Email,
         string? FullName,
+        string? PreferredName,
         string? Phone,
         string? ProfileImage,
         Guid? DefaultCurrencyId,
@@ -27,6 +28,7 @@ namespace ExpenseTracker.Dtos.Profile
 
     public record UpdateProfileDto(
         string? FullName,
+        string? PreferredName,
         string? Phone,
         string? ProfileImage,
         Guid? DefaultCurrencyId,

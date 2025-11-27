@@ -54,6 +54,17 @@
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field
+                            v-model="profileForm.preferredName"
+                            label="Preferred Name"
+                            variant="outlined"
+                            rounded="xl"
+                            prepend-inner-icon="mdi-account-star"
+                            hint="This name will be displayed on the dashboard"
+                            persistent-hint
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field
                             v-model="profileForm.phone"
                             label="Phone Number"
                             variant="outlined"
@@ -285,6 +296,7 @@ const passwordFormRef = ref()
 // Profile form
 const profileForm = reactive<UpdateProfileDto>({
   fullName: '',
+  preferredName: '',
   phone: '',
   profileImage: '',
   defaultCurrencyId: null,
@@ -357,6 +369,7 @@ const loadProfile = async () => {
     // Map profile data to form
     if (profile.value) {
       profileForm.fullName = profile.value.fullName || ''
+      profileForm.preferredName = profile.value.preferredName || ''
       profileForm.phone = profile.value.phone || ''
       profileForm.profileImage = profile.value.profileImage || ''
       profileForm.defaultCurrencyId = profile.value.defaultCurrencyId
@@ -407,6 +420,11 @@ const updateProfile = async () => {
   saving.value = true
   try {
     profile.value = await profileService.update(profileForm)
+    
+    // Save updated profile to localStorage
+    if (profile.value) {
+      localStorage.setItem('profile_data', JSON.stringify(profile.value))
+    }
   } catch (error) {
     console.error('Failed to update profile:', error)
   } finally {

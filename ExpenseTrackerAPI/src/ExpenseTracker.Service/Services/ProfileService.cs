@@ -81,6 +81,7 @@ namespace ExpenseTracker.Service.Services
                 user.Id,
                 user.Email,
                 user.FullName,
+                user.PreferredName,
                 user.Phone,
                 user.ProfileImage,
                 user.DefaultCurrencyId,
@@ -125,6 +126,7 @@ namespace ExpenseTracker.Service.Services
 
             // Update user properties
             user.FullName = dto.FullName;
+            user.PreferredName = dto.PreferredName;
             user.Phone = dto.Phone;
             user.ProfileImage = dto.ProfileImage;
             user.DefaultCurrencyId = dto.DefaultCurrencyId;
@@ -183,6 +185,7 @@ namespace ExpenseTracker.Service.Services
                 user.Id,
                 user.Email,
                 user.FullName,
+                user.PreferredName,
                 user.Phone,
                 user.ProfileImage,
                 user.DefaultCurrencyId,

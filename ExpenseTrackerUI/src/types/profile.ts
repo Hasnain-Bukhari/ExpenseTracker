@@ -2,6 +2,7 @@ export interface ProfileDto {
   id: string
   email: string
   fullName?: string | null
+  preferredName?: string | null
   phone?: string | null
   profileImage?: string | null
   defaultCurrencyId?: string | null
@@ -37,6 +38,7 @@ export interface ProfileDto {
 
 export interface UpdateProfileDto {
   fullName?: string | null
+  preferredName?: string | null
   phone?: string | null
   profileImage?: string | null
   defaultCurrencyId?: string | null

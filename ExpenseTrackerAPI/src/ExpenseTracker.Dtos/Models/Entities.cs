@@ -48,6 +48,7 @@ namespace ExpenseTracker.Dtos.Models
         public virtual string NormalizedEmail { get; set; } = null!;
         public virtual string? PasswordHash { get; set; }
         public virtual string? FullName { get; set; }
+        public virtual string? PreferredName { get; set; }
         // Default currency is now a FK to Currency entity
         public virtual Guid? DefaultCurrencyId { get; set; }
         public virtual Currency? DefaultCurrency { get; set; }
@@ -67,13 +68,14 @@ namespace ExpenseTracker.Dtos.Models
 
         public User() { }
 
-        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, Guid? defaultCurrencyId, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, string? profileImage, Guid? defaultAccountId, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
+        public User(Guid id, string email, string normalizedEmail, string? passwordHash, string? fullName, string? preferredName, Guid? defaultCurrencyId, string? locale, string? timezone, bool isActive, bool isEmailVerified, string? phone, string? profileImage, Guid? defaultAccountId, AuthProvider provider, string? providerId, DateTime? lastLoginAt, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             Email = email;
             NormalizedEmail = normalizedEmail;
             PasswordHash = passwordHash;
             FullName = fullName;
+            PreferredName = preferredName;
             DefaultCurrencyId = defaultCurrencyId;
             Locale = locale;
             Timezone = timezone;

@@ -430,6 +430,7 @@ export const profileService = {
 
   async update(data: {
     fullName?: string | null
+    preferredName?: string | null
     phone?: string | null
     profileImage?: string | null
     defaultCurrencyId?: string | null

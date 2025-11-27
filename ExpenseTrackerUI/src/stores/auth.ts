@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import type { User, LoginRequest, RegisterRequest, AuthApiResponse } from '@/types/auth'
 import api, { setTokens, getRefreshToken, clearTokens } from '@/lib/api'
 import { toastService } from '@/services/toastService'
+import { profileService } from '@/services/apiService'
 
 const AUTH_USER_KEY = 'auth_user'
+const PROFILE_DATA_KEY = 'profile_data'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -47,6 +49,15 @@ export const useAuthStore = defineStore('auth', () => {
           localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
         }
 
+        // Fetch and save profile data to localStorage
+        try {
+          const profile = await profileService.get()
+          localStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(profile))
+        } catch (err) {
+          console.warn('Failed to fetch profile on login:', err)
+          // Don't fail login if profile fetch fails
+        }
+
         toastService.loginSuccess()
         return { success: true }
       }
@@ -80,6 +91,15 @@ export const useAuthStore = defineStore('auth', () => {
 
         // persist user
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
+
+        // Fetch and save profile data to localStorage
+        try {
+          const profile = await profileService.get()
+          localStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(profile))
+        } catch (err) {
+          console.warn('Failed to fetch profile on register:', err)
+          // Don't fail registration if profile fetch fails
+        }
 
         toastService.registerSuccess()
         return { success: true }
@@ -118,6 +138,15 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = access ?? null
         localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
         
+        // Fetch and save profile data to localStorage
+        try {
+          const profile = await profileService.get()
+          localStorage.setItem(PROFILE_DATA_KEY, JSON.stringify(profile))
+        } catch (err) {
+          console.warn('Failed to fetch profile on social login:', err)
+          // Don't fail login if profile fetch fails
+        }
+        
         toastService.loginSuccess()
         return { success: true }
       }
@@ -147,6 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Clear local persistence
     localStorage.removeItem(AUTH_USER_KEY)
+    localStorage.removeItem(PROFILE_DATA_KEY)
     clearTokens()
     
     toastService.logoutSuccess()
