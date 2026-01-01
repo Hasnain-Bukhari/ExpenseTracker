@@ -3,7 +3,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosRequestConfig } 
 const REFRESH_KEY = 'auth:refreshToken'
 
 export const api: AxiosInstance = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE as string) || 'http://localhost:5001/v1/'
+  baseURL: (import.meta.env.VITE_API_BASE as string)
 })
 
 // simple in-memory token container
