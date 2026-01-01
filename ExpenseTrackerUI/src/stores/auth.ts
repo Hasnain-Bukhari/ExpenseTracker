@@ -63,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       error.value = (response && (response as any).error) || 'Login failed'
-      toastService.loginFailed(error.value)
+      toastService.loginFailed(error.value ?? undefined)
       return { success: false, error: error.value }
     } catch (err: any) {
       error.value = 'Network error occurred'
@@ -106,7 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       error.value = (response && (response as any).error) || 'Registration failed'
-      toastService.registerFailed(error.value)
+      toastService.registerFailed(error.value ?? undefined)
       return { success: false, error: error.value }
     } catch (err: any) {
       error.value = 'Network error occurred'
@@ -152,7 +152,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       error.value = (response && (response as any).error) || 'Social login failed'
-      toastService.loginFailed(error.value)
+      toastService.loginFailed(error.value ?? undefined)
       return { success: false, error: error.value }
     } catch (err: any) {
       error.value = 'Network error occurred'

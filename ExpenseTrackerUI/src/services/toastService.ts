@@ -10,29 +10,29 @@ class ToastService {
   private toast = useToast()
 
   success(message: string, title?: string, duration?: number) {
-    this.toast.success(message, {
-      title: title || 'Success',
+    const fullMessage = title ? `${title}: ${message}` : message
+    this.toast.success(fullMessage, {
       timeout: duration || 4000,
     })
   }
 
   error(message: string, title?: string, duration?: number) {
-    this.toast.error(message, {
-      title: title || 'Error',
+    const fullMessage = title ? `${title}: ${message}` : message
+    this.toast.error(fullMessage, {
       timeout: duration || 6000,
     })
   }
 
   warning(message: string, title?: string, duration?: number) {
-    this.toast.warning(message, {
-      title: title || 'Warning',
+    const fullMessage = title ? `${title}: ${message}` : message
+    this.toast.warning(fullMessage, {
       timeout: duration || 5000,
     })
   }
 
   info(message: string, title?: string, duration?: number) {
-    this.toast.info(message, {
-      title: title || 'Info',
+    const fullMessage = title ? `${title}: ${message}` : message
+    this.toast.info(fullMessage, {
       timeout: duration || 4000,
     })
   }
