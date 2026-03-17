@@ -1,166 +1,97 @@
 # Expense Tracker
 
-A comprehensive expense tracking application built with modern web technologies to help users manage their finances effectively.
+Expense tracking app: .NET 8 API + Vue 3 (Vuetify) frontend, PostgreSQL database.
 
-## 🏗️ Architecture
+---
 
-This project consists of two main components:
+## Prerequisites
 
-- **Backend API** (`ExpenseTrackerAPI/`) - .NET 8 Web API with PostgreSQL database
-- **Frontend UI** (`ExpenseTrackerUI/`) - Vue.js 3 application with Vuetify UI framework
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- [Node.js 18+](https://nodejs.org/)
+- [PostgreSQL 15+](https://www.postgresql.org/download/)
 
-## 🚀 Features
+---
 
-### Core Functionality
-- **User Authentication** - Secure JWT-based authentication system
-- **Account Management** - Create and manage multiple financial accounts
-- **Category Management** - Organize expenses and income with categories and subcategories
-- **Currency Support** - Multi-currency support for global users
-- **Account Types** - Different account types (Bank, Credit Card, etc.)
+## Quick start
 
-### User Interface
-- **Modern Design** - Clean, responsive UI built with Vuetify
-- **Dark/Light Theme** - User preference-based theme switching
-- **Real-time Updates** - Live data synchronization
-- **Mobile Responsive** - Optimized for all device sizes
+### 1. Database
 
-## 🛠️ Technology Stack
-
-### Backend
-- **.NET 8** - Modern C# web framework
-- **ASP.NET Core** - Web API framework
-- **NHibernate** - Object-relational mapping
-- **PostgreSQL** - Primary database
-- **JWT Authentication** - Secure token-based auth
-- **FluentValidation** - Input validation
-
-### Frontend
-- **Vue.js 3** - Progressive JavaScript framework
-- **TypeScript** - Type-safe JavaScript
-- **Vuetify 3** - Material Design component framework
-- **Vite** - Fast build tool and dev server
-- **Pinia** - State management
-- **Vue Router** - Client-side routing
-- **Axios** - HTTP client
-
-## 📁 Project Structure
-
-```
-ExpenseTracker/
-├── docker-compose.yml              # Docker orchestration
-├── docker-manage.sh               # Docker management script
-├── ExpenseTrackerAPI/              # Backend API
-│   ├── src/
-│   │   ├── ExpenseTracker.API/     # Web API controllers
-│   │   │   └── Dockerfile          # API container definition
-│   │   ├── ExpenseTracker.Service/ # Business logic
-│   │   ├── ExpenseTracker.Repository/ # Data access
-│   │   └── ExpenseTracker.Dtos/    # Data transfer objects
-│   ├── .dockerignore               # Docker build exclusions
-│   └── README.md                   # API documentation
-├── ExpenseTrackerUI/               # Frontend application
-│   ├── src/
-│   │   ├── components/             # Vue components
-│   │   ├── views/                 # Page components
-│   │   ├── stores/                # Pinia stores
-│   │   ├── types/                  # TypeScript definitions
-│   │   └── lib/                   # Utilities and API client
-│   ├── Dockerfile                  # UI container definition
-│   ├── nginx.conf                  # Nginx configuration
-│   ├── .dockerignore              # Docker build exclusions
-│   ├── .env                        # Local environment
-│   ├── .env.docker                 # Docker environment
-│   └── README.md                   # UI documentation
-└── README.md                       # This file
-```
-
-## 🚀 Quick Start
-
-### Option 1: Docker (Recommended)
-The easiest way to run the entire application locally:
+Create the database (or use default `postgres`). The API uses the connection in `ExpenseTrackerAPI/src/ExpenseTracker.API/appsettings.json` (default: `Database=postgres`, `Username=hasnainbukhari`, empty password).
 
 ```bash
-# Start all services with one command
-./docker-manage.sh start
+# If using default postgres DB, just run the schema:
+psql -d postgres -f ExpenseTrackerAPI/scripts/init-schema.sql
 ```
 
-**Access your application:**
-- **Frontend**: http://localhost:3000
-- **API**: http://localhost:5001
-- **Database**: localhost:5432
+If your Postgres user is different, use `-U your_username`. Run the script once per database.
 
-**Other Docker commands:**
+### 2. Backend API
+
+Open the solution in **Rider** (or VS) and run **ExpenseTracker.API**, or from a terminal:
+
 ```bash
-./docker-manage.sh stop      # Stop all services
-./docker-manage.sh logs      # View logs
-./docker-manage.sh status    # Check status
-./docker-manage.sh cleanup   # Remove everything
-```
-
-### Option 2: Manual Setup
-
-#### Prerequisites
-- .NET 8 SDK
-- Node.js 18+
-- PostgreSQL 15+
-
-#### Backend Setup
-```bash
-cd ExpenseTrackerAPI
+cd ExpenseTrackerAPI/src/ExpenseTracker.API
 dotnet restore
-dotnet run --project src/ExpenseTracker.API
+dotnet run
 ```
 
-#### Frontend Setup
+The API listens on the URL shown in the console (e.g. `http://localhost:5000` or `https://localhost:5001`). Connection string is in `appsettings.json`; override with the `CONNECTION_STRING` environment variable if needed.
+
+### 3. Frontend
+
+In a new terminal:
+
 ```bash
 cd ExpenseTrackerUI
 npm install
 npm run dev
 ```
 
-#### Database Setup
-1. Create a PostgreSQL database
-2. Update connection string in `ExpenseTrackerAPI/src/ExpenseTracker.API/Program.cs`
-3. Run the application to auto-create tables
-
-## 🔧 Development
-
-### Backend Development
-- Controllers handle HTTP requests
-- Services contain business logic
-- Repositories manage data access
-- DTOs define API contracts
-
-### Frontend Development
-- Components are organized by feature
-- Stores manage application state
-- Types ensure type safety
-- API client handles backend communication
-
-## 📚 Documentation
-
-- [API Documentation](./ExpenseTrackerAPI/README.md) - Detailed backend documentation
-- [UI Documentation](./ExpenseTrackerUI/README.md) - Frontend development guide
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation in each component folder
-- Review the code comments for implementation details
+Open the URL shown (e.g. `http://localhost:5173`). Ensure `.env` has `VITE_API_BASE` pointing at your API (e.g. `http://localhost:5001/v1/` if the API runs on port 5001).
 
 ---
 
-**Built with ❤️ using modern web technologies**
+## Project structure
+
+```
+ExpenseTracker/
+├── ExpenseTrackerAPI/           # .NET 8 Web API
+│   ├── src/
+│   │   ├── ExpenseTracker.API/  # Controllers, startup
+│   │   ├── ExpenseTracker.Service/
+│   │   ├── ExpenseTracker.Repository/
+│   │   └── ExpenseTracker.Dtos/
+│   └── scripts/
+│       └── init-schema.sql      # DB schema (run once)
+├── ExpenseTrackerUI/            # Vue 3 + Vuetify + Vite
+│   ├── src/
+│   │   ├── components/
+│   │   ├── views/
+│   │   ├── stores/
+│   │   └── lib/
+│   └── .env                     # VITE_API_BASE
+└── README.md
+```
+
+---
+
+## Configuration
+
+| Where | What |
+|-------|------|
+| **API → DB** | `ExpenseTrackerAPI/src/ExpenseTracker.API/appsettings.json` → `ConnectionStrings:DefaultConnection` or `CONNECTION_STRING` |
+| **Frontend → API** | `ExpenseTrackerUI/.env` → `VITE_API_BASE` (e.g. `http://localhost:5001/v1/`) |
+
+---
+
+## Troubleshooting
+
+- **Role "postgres" does not exist** — On macOS Homebrew, the default superuser is your Mac username. Use that in `appsettings.json` (`Username=hasnainbukhari`, password empty). The repo is already set up for this.
+- **Column does not exist** — Run `ExpenseTrackerAPI/scripts/init-schema.sql` on the same database the API uses.
+- **Frontend can’t reach API** — Check `VITE_API_BASE` in `.env` matches the API URL and port; restart `npm run dev` after changing `.env`.
+
+---
+
+## License
+
+MIT.

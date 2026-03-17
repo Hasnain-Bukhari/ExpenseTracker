@@ -1,20 +1,20 @@
 -- ============================================================================
--- Complete Database Schema Script for Expense Tracker Production Database
--- This script creates all tables, constraints, indexes, and relationships
--- Run this script on your production database (expensetrackerdb)
+-- Expense Tracker – PostgreSQL schema (single run, idempotent)
+-- Run once on the database your API uses (see appsettings.json).
+-- Creates: users, currencies, account_types, accounts, categories, sub_categories,
+-- transactions, budgets, goals, refresh_tokens, password_reset_tokens, category_types.
 -- ============================================================================
 
--- ============================================================================
--- STEP 1: Create Core Tables (in dependency order)
--- ============================================================================
-
--- 1. Users table (base table, referenced by all others)
+-- ----------------------------------------------------------------------------
+-- 1. Users (no self-referencing FKs yet)
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     normalized_email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255),
     full_name VARCHAR(255),
+    preferred_name VARCHAR(255),
     default_currency_id UUID,
     locale VARCHAR(10) DEFAULT 'en-US',
     timezone VARCHAR(50) DEFAULT 'UTC',
@@ -30,11 +30,12 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Unique constraints on users
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_email ON users(email);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_normalized_email ON users(normalized_email);
 
--- 2. Currencies table
+-- ----------------------------------------------------------------------------
+-- 2. Currencies
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS currencies (
     id UUID PRIMARY KEY,
     user_id UUID,
@@ -46,13 +47,12 @@ CREATE TABLE IF NOT EXISTS currencies (
     CONSTRAINT fk_currencies_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Unique constraint: currency code must be unique per user
 CREATE UNIQUE INDEX IF NOT EXISTS uk_currencies_user_code ON currencies(user_id, code) WHERE user_id IS NOT NULL;
-
--- Index for performance
 CREATE INDEX IF NOT EXISTS idx_currencies_user_id ON currencies(user_id);
 
--- 3. Account Types table
+-- ----------------------------------------------------------------------------
+-- 3. Account types
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS account_types (
     id UUID PRIMARY KEY,
     user_id UUID,
@@ -63,10 +63,11 @@ CREATE TABLE IF NOT EXISTS account_types (
     CONSTRAINT fk_account_types_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Index for performance
 CREATE INDEX IF NOT EXISTS idx_account_types_user_id ON account_types(user_id);
 
--- 4. Accounts table
+-- ----------------------------------------------------------------------------
+-- 4. Accounts
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -83,12 +84,13 @@ CREATE TABLE IF NOT EXISTS accounts (
     CONSTRAINT fk_accounts_currency_id FOREIGN KEY (currency_id) REFERENCES currencies(id)
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
 CREATE INDEX IF NOT EXISTS idx_accounts_account_type_id ON accounts(account_type_id);
 CREATE INDEX IF NOT EXISTS idx_accounts_currency_id ON accounts(currency_id);
 
--- 5. Categories table
+-- ----------------------------------------------------------------------------
+-- 5. Categories
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS categories (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -102,12 +104,13 @@ CREATE TABLE IF NOT EXISTS categories (
     CONSTRAINT fk_categories_parent_id FOREIGN KEY (parent_id) REFERENCES categories(id)
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
 CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON categories(parent_id);
 CREATE INDEX IF NOT EXISTS idx_categories_category_type ON categories(category_type);
 
--- 6. Sub Categories table
+-- ----------------------------------------------------------------------------
+-- 6. Sub-categories
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sub_categories (
     id UUID PRIMARY KEY,
     category_id UUID NOT NULL,
@@ -118,10 +121,11 @@ CREATE TABLE IF NOT EXISTS sub_categories (
     CONSTRAINT fk_sub_categories_category_id FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_sub_categories_category_id ON sub_categories(category_id);
 
--- 7. Transactions table
+-- ----------------------------------------------------------------------------
+-- 7. Transactions
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -139,7 +143,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT fk_transactions_sub_category_id FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id)
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON transactions(account_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id);
@@ -147,7 +150,9 @@ CREATE INDEX IF NOT EXISTS idx_transactions_sub_category_id ON transactions(sub_
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, transaction_date);
 
--- 8. Budgets table
+-- ----------------------------------------------------------------------------
+-- 8. Budgets
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS budgets (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -162,18 +167,16 @@ CREATE TABLE IF NOT EXISTS budgets (
     CONSTRAINT fk_budgets_category_id FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
--- Unique constraint: only one active budget per category per user
-CREATE UNIQUE INDEX IF NOT EXISTS uk_budgets_user_category_active ON budgets(user_id, category_id) 
-WHERE is_active = true;
-
--- Indexes for performance
+CREATE UNIQUE INDEX IF NOT EXISTS uk_budgets_user_category_active ON budgets(user_id, category_id) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_budgets_user_category_active ON budgets(user_id, category_id, is_active);
 CREATE INDEX IF NOT EXISTS idx_budgets_effective_dates ON budgets(effective_from, effective_to);
 CREATE INDEX IF NOT EXISTS idx_budgets_user_active ON budgets(user_id, is_active);
 
--- 9. Goals table
+-- ----------------------------------------------------------------------------
+-- 9. Goals
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS goals (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -196,7 +199,6 @@ CREATE TABLE IF NOT EXISTS goals (
     CONSTRAINT chk_goals_priority CHECK (priority IN ('Low', 'Medium', 'High'))
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals(user_id);
 CREATE INDEX IF NOT EXISTS idx_goals_category_id ON goals(category_id);
 CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status);
@@ -204,7 +206,9 @@ CREATE INDEX IF NOT EXISTS idx_goals_priority ON goals(priority);
 CREATE INDEX IF NOT EXISTS idx_goals_start_date ON goals(start_date);
 CREATE INDEX IF NOT EXISTS idx_goals_end_date ON goals(end_date);
 
--- 10. Refresh Tokens table
+-- ----------------------------------------------------------------------------
+-- 10. Refresh tokens
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -216,12 +220,13 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     CONSTRAINT fk_refresh_tokens_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 
--- 11. Password Reset Tokens table
+-- ----------------------------------------------------------------------------
+-- 11. Password reset tokens
+-- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -232,61 +237,65 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     CONSTRAINT fk_password_reset_tokens_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token_hash ON password_reset_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);
 
--- ============================================================================
--- STEP 2: Add Foreign Key Constraints for User References
--- ============================================================================
-
--- Add foreign key for users.default_currency_id (can be NULL)
+-- ----------------------------------------------------------------------------
+-- 12. User self-referencing FKs (after accounts exist)
+-- ----------------------------------------------------------------------------
 DO $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'fk_users_default_currency_id'
-    ) THEN
-        ALTER TABLE users
-        ADD CONSTRAINT fk_users_default_currency_id 
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_users_default_currency_id') THEN
+        ALTER TABLE users ADD CONSTRAINT fk_users_default_currency_id
         FOREIGN KEY (default_currency_id) REFERENCES currencies(id);
     END IF;
 END $$;
 
--- Add foreign key for users.default_account_id (can be NULL)
 DO $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'fk_users_default_account_id'
-    ) THEN
-        ALTER TABLE users
-        ADD CONSTRAINT fk_users_default_account_id 
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_users_default_account_id') THEN
+        ALTER TABLE users ADD CONSTRAINT fk_users_default_account_id
         FOREIGN KEY (default_account_id) REFERENCES accounts(id);
     END IF;
 END $$;
 
--- ============================================================================
--- STEP 3: Add Table Comments for Documentation
--- ============================================================================
+-- ----------------------------------------------------------------------------
+-- 13. Optional: add preferred_name if missing (legacy DBs)
+-- ----------------------------------------------------------------------------
+ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_name VARCHAR(255);
 
-COMMENT ON TABLE users IS 'User accounts and authentication information';
+-- ----------------------------------------------------------------------------
+-- 14. Category types (reference/lookup table, optional)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS category_types (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    color VARCHAR(20),
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO category_types (id, name, description, color, is_active, created_at, updated_at) VALUES
+    ('11111111-1111-1111-1111-111111111111', 'Expense', 'Categories for tracking expenses', '#f44336', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('22222222-2222-2222-2222-222222222222', 'Income', 'Categories for tracking income', '#4caf50', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('33333333-3333-3333-3333-333333333333', 'Investment', 'Categories for tracking investments', '#2196f3', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- Comments
+-- ----------------------------------------------------------------------------
+COMMENT ON TABLE users IS 'User accounts and authentication';
 COMMENT ON TABLE currencies IS 'Currency definitions (unique code per user)';
-COMMENT ON TABLE account_types IS 'Types of accounts (e.g., Checking, Savings, Credit Card)';
+COMMENT ON TABLE account_types IS 'Types of accounts (e.g. Checking, Savings, Credit Card)';
 COMMENT ON TABLE accounts IS 'User financial accounts';
 COMMENT ON TABLE categories IS 'Transaction categories (Income, Expense, TargetedSavingsGoal)';
-COMMENT ON TABLE sub_categories IS 'Sub-categories within parent categories';
+COMMENT ON TABLE sub_categories IS 'Sub-categories within a category';
 COMMENT ON TABLE transactions IS 'Financial transactions';
-COMMENT ON TABLE budgets IS 'Time-based budget system with effective date ranges';
-COMMENT ON TABLE goals IS 'User financial goals with progress tracking';
-COMMENT ON TABLE refresh_tokens IS 'JWT refresh tokens for user sessions';
-COMMENT ON TABLE password_reset_tokens IS 'Password reset tokens for forgot password flow';
-
--- ============================================================================
--- Script Complete!
--- ============================================================================
--- All tables, constraints, indexes, and relationships have been created.
--- You can now run your application against this database schema.
--- ============================================================================
-
+COMMENT ON TABLE budgets IS 'Time-based budgets with effective date ranges';
+COMMENT ON TABLE goals IS 'User financial goals with progress';
+COMMENT ON TABLE refresh_tokens IS 'JWT refresh tokens';
+COMMENT ON TABLE password_reset_tokens IS 'Password reset tokens';
+COMMENT ON TABLE category_types IS 'Reference data for category type metadata';

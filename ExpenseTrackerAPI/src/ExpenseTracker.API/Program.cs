@@ -133,9 +133,9 @@ builder.Services.AddAuthentication(options =>
 
 // NHibernate configuration (very minimal - replace with proper connection settings)
 var cfg = new Configuration();
-// Read connection string from appsettings: try ConnectionStrings:DefaultConnection first, then CONNECTION_STRING, then fallback
-string usedConnectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? builder.Configuration["CONNECTION_STRING"] 
+// Prefer CONNECTION_STRING (env) so Docker/compose overrides appsettings, then DefaultConnection, then fallback
+string usedConnectionString = builder.Configuration["CONNECTION_STRING"]
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=postgres;Username=hasnainbukhari;Password=;";
 cfg.DataBaseIntegration(db =>
 {
