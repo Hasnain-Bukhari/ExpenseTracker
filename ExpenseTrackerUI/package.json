@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:network": "VITE_API_BASE=http://192.168.100.7:5001/v1/ vite --host",
     "dev:host": "vite --host",
     "build": "vue-tsc && vite build",
     "build:docker": "vite build",
